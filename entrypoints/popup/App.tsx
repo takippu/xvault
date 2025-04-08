@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { storage } from '@wxt-dev/storage'; // Correct import path
-import './App.css'; // We'll update styles later
+// Removed App.css import, it's handled in main.tsx
 import LoginScreen from './LoginScreen';
 import FolderList from './FolderList';   // Import FolderList
 import SnippetList from './SnippetList'; // Import SnippetList
@@ -215,78 +215,109 @@ function App() {
 
   // --- Rendering Logic ---
   if (isLoading) {
-    return <div className="loading">Loading...</div>;
+    // Tailwind classes for loading state
+    return <div className="flex justify-center items-center h-full text-lg text-gray-500">Loading...</div>;
   }
 
+  // LoginScreen likely needs its own Tailwind refactoring
   if (passwordInfo && !isAuthenticated) {
     return <LoginScreen onLogin={handleLogin} authError={authError} />;
   }
 
+  // Apply Tailwind classes to the main App structure
   return (
-    <div className="app-container">
-      <h1>My Text Snippets</h1>
-      {authError && <p className="error-message">{authError}</p>}
+    <div className="flex flex-col h-full w-full bg-white text-gray-800 text-sm">
+      
+      <h1 className="text-xl font-semibold text-center py-3 border-b border-gray-200 text-gray-700">Peti Rahsia</h1>
+      {authError && <p className="text-red-600 text-xs mt-2 text-center">{authError}</p>}
 
-      <div className="layout-container">
-        <div className="sidebar">
+      {/* Main layout: Sidebar + Content */}
+      <div className="flex flex-grow overflow-hidden border-b border-gray-200">
+        {/* Sidebar */}
+        <div className="w-[160px] border-r border-gray-200 p-3 flex flex-col overflow-y-auto bg-gray-50">
+            {/* FolderList likely needs its own Tailwind refactoring */}
             <FolderList
                 folders={folders}
                 selectedFolderId={selectedFolderId}
                 onSelectFolder={setSelectedFolderId}
             />
-            <div className="add-folder-form">
+            {/* Add Folder Form */}
+            <div className="mt-auto pt-3 border-t border-gray-200"> {/* Pushes form to bottom */}
                 <input
                     type="text"
+                    className="w-full p-1.5 border border-gray-300 rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                     value={newFolderName}
                     onChange={(e) => setNewFolderName(e.target.value)}
                     placeholder="New folder name"
                 />
-                <button onClick={() => handleAddFolder(newFolderName)} disabled={!newFolderName.trim()}>
+                <button
+                    className="w-full py-1.5 px-3 border-none rounded bg-blue-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    onClick={() => handleAddFolder(newFolderName)}
+                    disabled={!newFolderName.trim()}
+                >
                     Add Folder
                 </button>
             </div>
         </div>
 
-        <div className="main-content">
+        {/* Main Content Area */}
+        <div className="flex-grow p-3 overflow-y-auto">
             {selectedFolder ? (
-                <>
+                <div className="flex flex-col h-full">
+                    {/* SnippetList likely needs its own Tailwind refactoring */}
                     <SnippetList
                         snippets={selectedFolder.snippets}
                         onCopySnippet={handleCopySnippetWithFeedback} // Use feedback handler
                         copiedSnippetId={copiedSnippetId} // Pass copied ID
                     />
-                    <div className="add-snippet-form">
+                     {/* Add Snippet Form */}
+                    <div className="mt-auto pt-3 border-t border-gray-200"> {/* Pushes form to bottom */}
                         <input
                             type="text"
+                            className="w-full p-1.5 border border-gray-300 rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                             value={newSnippetText}
                             onChange={(e) => setNewSnippetText(e.target.value)}
                             placeholder="New snippet text"
                         />
-                        <button onClick={() => handleAddSnippet(selectedFolderId, newSnippetText)} disabled={!newSnippetText.trim()}>
+                        <button
+                            className="w-full py-1.5 px-3 border-none rounded bg-green-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            onClick={() => handleAddSnippet(selectedFolderId, newSnippetText)}
+                            disabled={!newSnippetText.trim()}
+                        >
                             Add Snippet to {selectedFolder.name}
                         </button>
                     </div>
-                </>
+                </div>
             ) : (
-                <p className="placeholder-text">Select a folder to view snippets.</p>
+                <p className="text-center text-gray-500 mt-6 text-xs">Select a folder to view snippets.</p>
             )}
         </div>
       </div>
 
-      <div className="settings-area">
-        <h2>Settings</h2>
+      {/* Settings Area */}
+      <div className="p-3 bg-gray-100 border-t border-gray-200">
+        <h2 className="text-base font-semibold mb-2 text-gray-600">Settings</h2>
         {!passwordInfo && (
-          <div className="set-password-form">
-            <input type="password" id="newPasswordInput" placeholder="Set a password" />
-            <button onClick={() => {
-                const input = document.getElementById('newPasswordInput') as HTMLInputElement;
-                handleSetPassword(input.value);
-                input.value = ''; // Clear input after attempt
-            }}>Set Password</button>
+          <div className="flex items-center space-x-2">
+            <input
+                type="password"
+                id="newPasswordInput"
+                placeholder="Set a password"
+                className="flex-grow p-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <button
+                className="py-1.5 px-3 border-none rounded bg-blue-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-blue-700"
+                onClick={() => {
+                    const input = document.getElementById('newPasswordInput') as HTMLInputElement;
+                    if (input) {
+                        handleSetPassword(input.value);
+                        input.value = ''; // Clear input after attempt
+                    }
+                }}>Set Password</button>
           </div>
         )}
          {passwordInfo && (
-            <p>Password is set. {/* TODO: Add option to change/remove password */}</p>
+            <p className="text-xs text-gray-600">Password is set. {/* TODO: Add option to change/remove password */}</p>
          )}
       </div>
     </div>
