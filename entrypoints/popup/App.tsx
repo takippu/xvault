@@ -5,7 +5,8 @@ import LoginScreen from './LoginScreen';
 import FolderList from './FolderList';   // Import FolderList
 import SnippetList from './SnippetList'; // Import SnippetList
 import Toast from './Toast'; // Import Toast component
-import { FiPlus, FiSearch } from 'react-icons/fi'; // Import icons for plus and search
+import Settings from './Settings'; // Import Settings component
+import { FiPlus, FiSearch, FiSettings } from 'react-icons/fi'; // Import icons for plus, search, and settings
 
 // --- Crypto Utilities ---
 
@@ -87,6 +88,7 @@ function App() {
   const [showAddSnippet, setShowAddSnippet] = useState(false); // State to toggle Add Snippet section visibility
   const [searchQuery, setSearchQuery] = useState(''); // State for search functionality
   const [showSidebar, setShowSidebar] = useState(true); // State to toggle sidebar visibility
+  const [showSettings, setShowSettings] = useState(false); // State to toggle Settings page visibility
 
   const selectedFolder = useMemo(() => {
     return folders.find(folder => folder.id === selectedFolderId) || null;
@@ -156,7 +158,8 @@ function App() {
 
   const handleSetPassword = useCallback(async (newPassword: string) => {
     if (!newPassword) {
-        alert("Password cannot be empty."); return;
+        setAuthError("Password cannot be empty.");
+        return;
     }
     setAuthError(null);
     try {
@@ -168,10 +171,14 @@ function App() {
         setPasswordInfo(newPasswordInfo);
         setIsAuthenticated(true); // Assume authenticated after setting
         console.log("Password info saved:", newPasswordInfo);
-        alert("Password set successfully!");
+        setToast({
+          visible: true,
+          message: 'Password set successfully!',
+          type: 'success'
+        });
     } catch (error) {
         console.error("Error setting password:", error);
-        alert(`Failed to set password: ${error instanceof Error ? error.message : String(error)}`);
+        setAuthError(`Failed to set password: ${error instanceof Error ? error.message : String(error)}`);
     }
   }, []);
 
@@ -323,6 +330,44 @@ function App() {
     });
   }, [folders, selectedFolderId]);
 
+  // Handle changing password (verify current + set new)
+  const handleChangePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    if (!passwordInfo) {
+      setAuthError("No password is currently set.");
+      return;
+    }
+    
+    setAuthError(null);
+    try {
+      // Verify current password
+      const saltBuffer = hexToBuffer(passwordInfo.salt);
+      const isValid = await verifyPassword(currentPassword, passwordInfo.hash, saltBuffer);
+      
+      if (!isValid) {
+        setAuthError("Current password is incorrect.");
+        return;
+      }
+      
+      // Set new password
+      const salt = generateSalt();
+      const hash = await hashPassword(newPassword, salt);
+      const newPasswordInfo: StoredPasswordInfo = { hash, salt: bufferToHex(salt) };
+      
+      // Save to storage
+      await storage.setItem('local:passwordInfo', newPasswordInfo);
+      setPasswordInfo(newPasswordInfo);
+      
+      setToast({
+        visible: true,
+        message: 'Password changed successfully!',
+        type: 'success'
+      });
+    } catch (error) {
+      console.error("Error changing password:", error);
+      setAuthError(`Failed to change password: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }, [passwordInfo]);
+
   // --- Rendering Logic ---
   if (isLoading) {
     // Tailwind classes for loading state
@@ -332,6 +377,19 @@ function App() {
   // LoginScreen likely needs its own Tailwind refactoring
   if (passwordInfo && !isAuthenticated) {
     return <LoginScreen onLogin={handleLogin} authError={authError} />;
+  }
+  
+  // Show Settings page if it's active
+  if (showSettings) {
+    return (
+      <Settings
+        passwordInfo={passwordInfo}
+        onSetPassword={handleSetPassword}
+        onChangePassword={handleChangePassword}
+        onBack={() => setShowSettings(false)}
+        authError={authError}
+      />
+    );
   }
 
   // Apply Tailwind classes to the main App structure
@@ -345,7 +403,16 @@ function App() {
         onClose={() => setToast(prev => ({ ...prev, visible: false }))}
       />
       
-      <h1 className="text-xl font-semibold text-center py-3 border-b border-gray-200 text-gray-700">Peti Rahsia</h1>
+      <div className="flex items-center justify-between py-3 border-b border-gray-200 px-3">
+        <h1 className="text-xl font-semibold text-gray-700">Peti Rahsia</h1>
+        <button 
+          onClick={() => setShowSettings(true)}
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+          title="Settings"
+        >
+          <FiSettings size={18} className="text-gray-600" />
+        </button>
+      </div>
       {authError && <p className="text-red-600 text-xs mt-2 text-center">{authError}</p>}
 
       {/* Main layout: Sidebar + Content */}
@@ -523,32 +590,7 @@ function App() {
         </div>
       </div>
 
-      {/* Settings Area */}
-      <div className="p-3 bg-gray-100 border-t border-gray-200">
-        <h2 className="text-base font-semibold mb-2 text-gray-600">Settings</h2>
-        {!passwordInfo && (
-          <div className="flex items-center space-x-2">
-            <input
-                type="password"
-                id="newPasswordInput"
-                placeholder="Set a password"
-                className="flex-grow p-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <button
-                className="py-1.5 px-3 border-none rounded bg-blue-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-blue-700"
-                onClick={() => {
-                    const input = document.getElementById('newPasswordInput') as HTMLInputElement;
-                    if (input) {
-                        handleSetPassword(input.value);
-                        input.value = ''; // Clear input after attempt
-                    }
-                }}>Set Password</button>
-          </div>
-        )}
-         {passwordInfo && (
-            <p className="text-xs text-gray-600">Password is set. {/* TODO: Add option to change/remove password */}</p>
-         )}
-      </div>
+      {/* Removed Settings Area - Now in separate Settings component */}
     </div>
   );
 }
