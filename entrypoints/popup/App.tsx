@@ -5,6 +5,7 @@ import LoginScreen from './LoginScreen';
 import FolderList from './FolderList';   // Import FolderList
 import SnippetList from './SnippetList'; // Import SnippetList
 import Toast from './Toast'; // Import Toast component
+import { FiPlus, FiSearch } from 'react-icons/fi'; // Import icons for plus and search
 
 // --- Crypto Utilities ---
 
@@ -82,10 +83,28 @@ function App() {
   const [copiedSnippetId, setCopiedSnippetId] = useState<string | null>(null);
   const [snippetMode, setSnippetMode] = useState<'copy' | 'delete' | 'edit'>('copy');
   const [toast, setToast] = useState({ visible: false, message: '', type: 'success' as const });
+  const [showAddFolder, setShowAddFolder] = useState(false); // State to toggle Add Folder section visibility
+  const [showAddSnippet, setShowAddSnippet] = useState(false); // State to toggle Add Snippet section visibility
+  const [searchQuery, setSearchQuery] = useState(''); // State for search functionality
+  const [showSidebar, setShowSidebar] = useState(true); // State to toggle sidebar visibility
 
   const selectedFolder = useMemo(() => {
     return folders.find(folder => folder.id === selectedFolderId) || null;
   }, [folders, selectedFolderId]);
+  
+  // Filter snippets based on search query
+  const filteredSnippets = useMemo(() => {
+    if (!selectedFolder || !searchQuery.trim()) {
+      return selectedFolder?.snippets || [];
+    }
+    
+    const query = searchQuery.toLowerCase().trim();
+    return selectedFolder.snippets.filter(snippet => {
+      const titleMatch = snippet.title?.toLowerCase().includes(query) || false;
+      const textMatch = snippet.text.toLowerCase().includes(query);
+      return titleMatch || textMatch;
+    });
+  }, [selectedFolder, searchQuery]);
 
   // Load data from storage
   const loadData = useCallback(async () => {
@@ -330,40 +349,104 @@ function App() {
       {authError && <p className="text-red-600 text-xs mt-2 text-center">{authError}</p>}
 
       {/* Main layout: Sidebar + Content */}
-      <div className="flex flex-grow overflow-hidden border-b border-gray-200">
-        {/* Sidebar */}
-        <div className="w-[160px] border-r border-gray-200 p-3 flex flex-col overflow-y-auto bg-gray-50">
-            {/* FolderList likely needs its own Tailwind refactoring */}
+      <div className="flex flex-grow overflow-hidden border-b border-gray-200 relative">
+        {/* Sidebar toggle button when sidebar is hidden */}
+        {!showSidebar && (
+          <button 
+            className="absolute top-2 left-0 z-10 p-1 bg-gray-200 text-gray-700 rounded-r-md hover:bg-gray-300 transition-all duration-200"
+            onClick={() => setShowSidebar(true)}
+            title="Show folders"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="9" y1="3" x2="9" y2="21"></line>
+            </svg>
+          </button>
+        )}
+        
+        {/* Sidebar - Conditionally rendered with transition */}
+        <div 
+          className={`border-r border-gray-200 p-3 flex flex-col overflow-y-auto bg-gray-50 transition-all duration-300 ease-in-out relative ${showSidebar ? 'w-[160px]' : 'w-0 p-0 overflow-hidden'}`}
+        >
+            {/* Sidebar Toggle Button - Positioned at the right edge of sidebar */}
+            {showSidebar && (
+              <button 
+                className="absolute top-2 right-0 z-10 p-1 bg-gray-200 text-gray-700 rounded-l-md hover:bg-gray-300 transition-all duration-200"
+                onClick={() => setShowSidebar(false)}
+                title="Hide folders"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="9" y1="3" x2="9" y2="21"></line>
+                </svg>
+              </button>
+            )}
+            
+            {/* FolderList */}
             <FolderList
                 folders={folders}
                 selectedFolderId={selectedFolderId}
                 onSelectFolder={setSelectedFolderId}
             />
-            {/* Add Folder Form */}
-            <div className="mt-auto pt-3 border-t border-gray-200"> {/* Pushes form to bottom */}
-                <input
-                    type="text"
-                    className="w-full p-1.5 border border-gray-300 rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                    value={newFolderName}
-                    onChange={(e) => setNewFolderName(e.target.value)}
-                    placeholder="New folder name"
-                />
-                <button
-                    className="w-full py-1.5 px-3 border-none rounded bg-blue-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                    onClick={() => handleAddFolder(newFolderName)}
-                    disabled={!newFolderName.trim()}
-                >
-                    Add Folder
-                </button>
-            </div>
+            
+            {/* Add Folder Toggle Button - Only shown when sidebar is visible */}
+            {showSidebar && (
+              <div className="mt-auto pt-3 border-t border-gray-200"> {/* Pushes form to bottom */}
+                  <button
+                      className="w-full py-1.5 px-3 mb-1.5 border-none rounded bg-blue-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-blue-700 flex items-center justify-center"
+                      onClick={() => setShowAddFolder(!showAddFolder)}
+                  >
+                      <FiPlus className="mr-1" size={14} />
+                      {showAddFolder ? 'Hide' : 'Add Folder'}
+                  </button>
+                  
+                  {/* Add Folder Form - Conditionally rendered */}
+                  {showAddFolder && (
+                      <div className="mt-1">
+                          <input
+                              type="text"
+                              className="w-full p-1.5 border border-gray-300 rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              value={newFolderName}
+                              onChange={(e) => setNewFolderName(e.target.value)}
+                              placeholder="New folder name"
+                          />
+                          <button
+                              className="w-full py-1.5 px-3 border-none rounded bg-blue-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                              onClick={() => {
+                                  handleAddFolder(newFolderName);
+                                  setShowAddFolder(false); // Hide form after adding
+                              }}
+                              disabled={!newFolderName.trim()}
+                          >
+                              Add Folder
+                          </button>
+                      </div>
+                  )}
+              </div>
+            )}
         </div>
 
         {/* Main Content Area */}
         <div className="flex-grow p-3 overflow-y-auto">
             {selectedFolder ? (
                 <div className="flex flex-col h-full">
-                    {/* Mode toggle button */}
-                    <div className="flex justify-end mb-2">
+                    {/* Search and Mode toggle buttons */}
+                    <div className="flex justify-between items-center mb-2">                        
+                        {/* Search input */}
+                        <div className="relative flex-grow mr-2">
+                            <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                <FiSearch className="text-gray-400" size={14} />
+                            </div>
+                            <input
+                                type="text"
+                                className="w-full py-1 pl-8 pr-2 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Search snippets..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                        
+                        {/* Mode toggle button */}
                         <button
                             className={`py-1 px-2 text-xs rounded transition-colors duration-200 ease-in-out ${
                                 snippetMode === 'copy' 
@@ -385,37 +468,53 @@ function App() {
                         </button>
                     </div>
                     
-                    {/* SnippetList with mode and handlers */}
+                    {/* SnippetList with filtered snippets and handlers */}
                     <SnippetList
-                        snippets={selectedFolder.snippets}
+                        snippets={filteredSnippets}
                         onCopySnippet={handleCopySnippetWithFeedback} // Use feedback handler
                         copiedSnippetId={copiedSnippetId} // Pass copied ID
                         onDeleteSnippet={handleDeleteSnippet} // Pass delete handler
                         onEditSnippet={handleEditSnippet} // Pass edit handler
                         mode={snippetMode} // Pass current mode
                     />
-                     {/* Add Snippet Form */}
+                     {/* Add Snippet Toggle Button */}
                     <div className="mt-auto pt-3 border-t border-gray-200"> {/* Pushes form to bottom */}
-                        <input
-                            type="text"
-                            className="w-full p-1.5 border border-gray-300 rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                            value={newSnippetTitle}
-                            onChange={(e) => setNewSnippetTitle(e.target.value)}
-                            placeholder="Snippet title (optional)"
-                        />
-                        <textarea
-                            className="w-full p-1.5 border border-gray-300 rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[60px]"
-                            value={newSnippetText}
-                            onChange={(e) => setNewSnippetText(e.target.value)}
-                            placeholder="Snippet text (required)"
-                        />
                         <button
-                            className="w-full py-1.5 px-3 border-none rounded bg-green-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                            onClick={() => handleAddSnippet(selectedFolderId, newSnippetText, newSnippetTitle)}
-                            disabled={!newSnippetText.trim()}
+                            className="w-full py-1.5 px-3 mb-1.5 border-none rounded bg-green-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-green-700 flex items-center justify-center"
+                            onClick={() => setShowAddSnippet(!showAddSnippet)}
                         >
-                            Add Snippet to {selectedFolder.name}
+                            <FiPlus className="mr-1" size={14} />
+                            {showAddSnippet ? 'Hide' : 'Add Snippet'}
                         </button>
+                        
+                        {/* Add Snippet Form - Conditionally rendered */}
+                        {showAddSnippet && (
+                            <div className="mt-1">
+                                <input
+                                    type="text"
+                                    className="w-full p-1.5 border border-gray-300 rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    value={newSnippetTitle}
+                                    onChange={(e) => setNewSnippetTitle(e.target.value)}
+                                    placeholder="Snippet title (optional)"
+                                />
+                                <textarea
+                                    className="w-full p-1.5 border border-gray-300 rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[60px]"
+                                    value={newSnippetText}
+                                    onChange={(e) => setNewSnippetText(e.target.value)}
+                                    placeholder="Snippet text (required)"
+                                />
+                                <button
+                                    className="w-full py-1.5 px-3 border-none rounded bg-green-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                    onClick={() => {
+                                        handleAddSnippet(selectedFolderId, newSnippetText, newSnippetTitle);
+                                        setShowAddSnippet(false); // Hide form after adding
+                                    }}
+                                    disabled={!newSnippetText.trim()}
+                                >
+                                    Add Snippet to {selectedFolder.name}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             ) : (
