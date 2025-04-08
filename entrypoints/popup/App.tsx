@@ -55,6 +55,7 @@ const verifyPassword = async (password: string, storedHash: string, salt: Uint8A
 export interface TextSnippet {
   id: string;
   text: string;
+  title?: string; // Optional title for the snippet
 }
 
 export interface Folder {
@@ -77,6 +78,7 @@ function App() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [newFolderName, setNewFolderName] = useState('');
   const [newSnippetText, setNewSnippetText] = useState('');
+  const [newSnippetTitle, setNewSnippetTitle] = useState('');
   const [copiedSnippetId, setCopiedSnippetId] = useState<string | null>(null);
   const [snippetMode, setSnippetMode] = useState<'copy' | 'delete' | 'edit'>('copy');
   const [toast, setToast] = useState({ visible: false, message: '', type: 'success' as const });
@@ -171,7 +173,7 @@ function App() {
     setNewFolderName('');
   }, [folders]);
 
-  const handleAddSnippet = useCallback((folderId: string | null, snippetText: string) => {
+  const handleAddSnippet = useCallback((folderId: string | null, snippetText: string, snippetTitle?: string) => {
     if (!folderId) {
         alert("Please select a folder first."); return;
     }
@@ -181,7 +183,11 @@ function App() {
     let snippetAdded = false;
     const updatedFolders = folders.map(folder => {
       if (folder.id === folderId) {
-        const newSnippet: TextSnippet = { id: Date.now().toString(), text: snippetText.trim() };
+        const newSnippet: TextSnippet = { 
+          id: Date.now().toString(), 
+          text: snippetText.trim(),
+          title: snippetTitle?.trim() || undefined // Only add title if it's not empty
+        };
         snippetAdded = true;
         return { ...folder, snippets: [...folder.snippets, newSnippet] };
       }
@@ -197,6 +203,7 @@ function App() {
             // TODO: Revert state?
         });
         setNewSnippetText('');
+        setNewSnippetTitle('');
     } else {
         console.error(`Folder with ID ${folderId} not found.`);
     }
@@ -252,6 +259,48 @@ function App() {
     storage.setItem('local:folders', updatedFolders).catch((err: unknown) => {
       console.error("Failed to save folders after deleting snippet:", err);
       alert(`Failed to delete snippet: ${err instanceof Error ? err.message : String(err)}`);
+    });
+  }, [folders, selectedFolderId]);
+
+  // Edit snippet handler
+  const handleEditSnippet = useCallback((snippetId: string, updatedText: string, updatedTitle?: string) => {
+    if (!selectedFolderId) return;
+    
+    const updatedFolders = folders.map(folder => {
+      if (folder.id === selectedFolderId) {
+        return {
+          ...folder,
+          snippets: folder.snippets.map(snippet => {
+            if (snippet.id === snippetId) {
+              return {
+                ...snippet,
+                text: updatedText,
+                title: updatedTitle
+              };
+            }
+            return snippet;
+          })
+        };
+      }
+      return folder;
+    });
+    
+    setFolders(updatedFolders);
+    // Save to storage
+    storage.setItem('local:folders', updatedFolders).catch((err: unknown) => {
+      console.error("Failed to save folders after editing snippet:", err);
+      setToast({
+        visible: true,
+        message: 'Failed to save changes',
+        type: 'error'
+      });
+    });
+
+    // Show success toast
+    setToast({
+      visible: true,
+      message: 'Snippet updated successfully',
+      type: 'success'
     });
   }, [folders, selectedFolderId]);
 
@@ -342,6 +391,7 @@ function App() {
                         onCopySnippet={handleCopySnippetWithFeedback} // Use feedback handler
                         copiedSnippetId={copiedSnippetId} // Pass copied ID
                         onDeleteSnippet={handleDeleteSnippet} // Pass delete handler
+                        onEditSnippet={handleEditSnippet} // Pass edit handler
                         mode={snippetMode} // Pass current mode
                     />
                      {/* Add Snippet Form */}
@@ -349,13 +399,19 @@ function App() {
                         <input
                             type="text"
                             className="w-full p-1.5 border border-gray-300 rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                            value={newSnippetTitle}
+                            onChange={(e) => setNewSnippetTitle(e.target.value)}
+                            placeholder="Snippet title (optional)"
+                        />
+                        <textarea
+                            className="w-full p-1.5 border border-gray-300 rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[60px]"
                             value={newSnippetText}
                             onChange={(e) => setNewSnippetText(e.target.value)}
-                            placeholder="New snippet text"
+                            placeholder="Snippet text (required)"
                         />
                         <button
                             className="w-full py-1.5 px-3 border-none rounded bg-green-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                            onClick={() => handleAddSnippet(selectedFolderId, newSnippetText)}
+                            onClick={() => handleAddSnippet(selectedFolderId, newSnippetText, newSnippetTitle)}
                             disabled={!newSnippetText.trim()}
                         >
                             Add Snippet to {selectedFolder.name}

@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TextSnippet } from './App'; // Import the exported interface
-import { FiCopy, FiEdit, FiTrash2 } from 'react-icons/fi'; // Import icons from react-icons
+import { FiCopy, FiEdit, FiTrash2, FiCheck, FiX } from 'react-icons/fi'; // Import icons from react-icons
 
 interface SnippetListProps {
   snippets: TextSnippet[];
   onCopySnippet: (snippet: TextSnippet) => void; // Expect the whole snippet object
   copiedSnippetId: string | null; // ID of the snippet just copied
   onDeleteSnippet?: (snippetId: string) => void; // Optional delete handler
+  onEditSnippet?: (snippetId: string, updatedText: string, updatedTitle?: string) => void; // Optional edit handler
   mode: 'copy' | 'delete' | 'edit'; // Current mode
 }
 
@@ -15,8 +16,13 @@ const SnippetList: React.FC<SnippetListProps> = ({
   onCopySnippet,
   copiedSnippetId, // Receive the copied ID prop
   onDeleteSnippet,
+  onEditSnippet,
   mode, // Current mode
 }) => {
+  // State for editing
+  const [editingSnippetId, setEditingSnippetId] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
+  const [editTitle, setEditTitle] = useState('');
   // Apply Tailwind classes
   return (
     // Container takes available space and allows scrolling
@@ -30,8 +36,41 @@ const SnippetList: React.FC<SnippetListProps> = ({
           {snippets.map((snippet) => (
             // Snippet item layout
             <li key={snippet.id} className="flex justify-between items-start p-2 border border-gray-200 rounded bg-white">
-              {/* Snippet text area with pre-wrap */}
-              <pre className="text-xs text-gray-800 whitespace-pre-wrap break-all mr-3 flex-grow bg-gray-50 p-1.5 rounded font-mono">{snippet.text}</pre>
+              {/* Snippet text area with pre-wrap, show title if available, show full text on hover */}
+              <div 
+                className="text-xs text-gray-800 whitespace-pre-wrap break-all mr-3 flex-grow bg-gray-50 p-1.5 rounded font-mono relative cursor-default"
+              >
+                {editingSnippetId === snippet.id ? (
+                  <div className="space-y-1">
+                    <input
+                      type="text"
+                      className="w-full p-1 border border-gray-300 rounded text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      placeholder="Title (optional)"
+                    />
+                    <textarea
+                      className="w-full p-1 border border-gray-300 rounded text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[60px]"
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      placeholder="Snippet text (required)"
+                    />
+                  </div>
+                ) : (
+                  <pre className="m-0 font-mono group relative transition-colors duration-200 ease-in-out hover:bg-blue-100 p-1 rounded">
+                    {/* Show title by default, but on hover show the full text */}
+                    <span className="group-hover:hidden">{snippet.title || snippet.text}</span>
+                    {snippet.title && (
+                      <>
+                        <span className="hidden group-hover:inline">{snippet.text}</span>
+                        <span className="absolute top-0 right-0 text-[10px] text-gray-500 bg-gray-100 px-1 rounded-bl">
+                          Hover to see content
+                        </span>
+                      </>
+                    )}
+                  </pre>
+                )}
+              </div>
               {/* Single action button that changes based on mode */}
               <div className="flex-shrink-0">
                 {mode === 'copy' && (
@@ -52,15 +91,42 @@ const SnippetList: React.FC<SnippetListProps> = ({
                 )}
                 
                 {mode === 'edit' && (
-                  <button
-                    className="p-1.5 border-none rounded text-white text-xs cursor-pointer transition-colors duration-200 ease-in-out bg-yellow-600 hover:bg-yellow-700"
-                    onClick={() => {
-                      // Future edit functionality
-                    }}
-                    title="Edit snippet"
-                  >
-                    <FiEdit size={14} />
-                  </button>
+                  editingSnippetId === snippet.id ? (
+                    <div className="flex space-x-1">
+                      <button
+                        className="p-1.5 border-none rounded text-white text-xs cursor-pointer transition-colors duration-200 ease-in-out bg-green-600 hover:bg-green-700"
+                        onClick={() => {
+                          if (onEditSnippet && editText.trim()) {
+                            onEditSnippet(snippet.id, editText, editTitle || undefined);
+                            setEditingSnippetId(null);
+                          }
+                        }}
+                        title="Save changes"
+                        disabled={!editText.trim()}
+                      >
+                        <FiCheck size={14} />
+                      </button>
+                      <button
+                        className="p-1.5 border-none rounded text-white text-xs cursor-pointer transition-colors duration-200 ease-in-out bg-gray-600 hover:bg-gray-700"
+                        onClick={() => setEditingSnippetId(null)}
+                        title="Cancel editing"
+                      >
+                        <FiX size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      className="p-1.5 border-none rounded text-white text-xs cursor-pointer transition-colors duration-200 ease-in-out bg-yellow-600 hover:bg-yellow-700"
+                      onClick={() => {
+                        setEditText(snippet.text);
+                        setEditTitle(snippet.title || '');
+                        setEditingSnippetId(snippet.id);
+                      }}
+                      title="Edit snippet"
+                    >
+                      <FiEdit size={14} />
+                    </button>
+                  )
                 )}
                 
                 {mode === 'delete' && onDeleteSnippet && (
