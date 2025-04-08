@@ -1,11 +1,13 @@
 import React from 'react';
 import { TextSnippet } from './App'; // Import the exported interface
+import { FiCopy, FiEdit, FiTrash2 } from 'react-icons/fi'; // Import icons from react-icons
 
 interface SnippetListProps {
   snippets: TextSnippet[];
   onCopySnippet: (snippet: TextSnippet) => void; // Expect the whole snippet object
   copiedSnippetId: string | null; // ID of the snippet just copied
   onDeleteSnippet?: (snippetId: string) => void; // Optional delete handler
+  mode: 'copy' | 'delete' | 'edit'; // Current mode
 }
 
 const SnippetList: React.FC<SnippetListProps> = ({
@@ -13,6 +15,7 @@ const SnippetList: React.FC<SnippetListProps> = ({
   onCopySnippet,
   copiedSnippetId, // Receive the copied ID prop
   onDeleteSnippet,
+  mode, // Current mode
 }) => {
   // Apply Tailwind classes
   return (
@@ -29,33 +32,46 @@ const SnippetList: React.FC<SnippetListProps> = ({
             <li key={snippet.id} className="flex justify-between items-start p-2 border border-gray-200 rounded bg-white">
               {/* Snippet text area with pre-wrap */}
               <pre className="text-xs text-gray-800 whitespace-pre-wrap break-all mr-3 flex-grow bg-gray-50 p-1.5 rounded font-mono">{snippet.text}</pre>
-              {/* Actions container */}
+              {/* Single action button that changes based on mode */}
               <div className="flex-shrink-0">
-                <button
-                  // Base button styles + conditional 'copied' styles
-                  className={`
-                    py-1 px-2.5 border-none rounded text-white text-xs cursor-pointer transition-colors duration-200 ease-in-out
-                    min-w-[60px]
-                    ${copiedSnippetId === snippet.id
-                      ? 'bg-gray-500 cursor-default' // Copied state
-                      : 'bg-green-600 hover:bg-green-700' // Default state
-                    }
-                  `}
-                  onClick={() => onCopySnippet(snippet)}
-                  title="Copy snippet"
-                  disabled={copiedSnippetId === snippet.id}
-                >
-                  {copiedSnippetId === snippet.id ? 'Copied!' : 'Copy'}
-                </button>
-                {/* Optional: Add delete button later */}
-                {/* {onDeleteSnippet && (
+                {mode === 'copy' && (
                   <button
-                    className="delete-snippet-btn"
-                    onClick={() => onDeleteSnippet(snippet.id)}
+                    className={`
+                      p-1.5 border-none rounded text-white text-xs cursor-pointer transition-colors duration-200 ease-in-out
+                      ${copiedSnippetId === snippet.id
+                        ? 'bg-gray-500 cursor-default' // Copied state
+                        : 'bg-green-600 hover:bg-green-700' // Normal state
+                      }
+                    `}
+                    onClick={() => onCopySnippet(snippet)}
+                    title="Copy snippet"
+                    disabled={copiedSnippetId === snippet.id}
                   >
-                    Delete
+                    <FiCopy size={14} />
                   </button>
-                )} */}
+                )}
+                
+                {mode === 'edit' && (
+                  <button
+                    className="p-1.5 border-none rounded text-white text-xs cursor-pointer transition-colors duration-200 ease-in-out bg-yellow-600 hover:bg-yellow-700"
+                    onClick={() => {
+                      // Future edit functionality
+                    }}
+                    title="Edit snippet"
+                  >
+                    <FiEdit size={14} />
+                  </button>
+                )}
+                
+                {mode === 'delete' && onDeleteSnippet && (
+                  <button
+                    className="p-1.5 border-none rounded text-white text-xs cursor-pointer transition-colors duration-200 ease-in-out bg-red-600 hover:bg-red-700"
+                    onClick={() => onDeleteSnippet(snippet.id)}
+                    title="Delete snippet"
+                  >
+                    <FiTrash2 size={14} />
+                  </button>
+                )}
               </div>
             </li>
           ))}

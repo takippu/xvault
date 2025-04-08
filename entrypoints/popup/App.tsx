@@ -4,6 +4,7 @@ import { storage } from '@wxt-dev/storage'; // Correct import path
 import LoginScreen from './LoginScreen';
 import FolderList from './FolderList';   // Import FolderList
 import SnippetList from './SnippetList'; // Import SnippetList
+import Toast from './Toast'; // Import Toast component
 
 // --- Crypto Utilities ---
 
@@ -77,6 +78,8 @@ function App() {
   const [newFolderName, setNewFolderName] = useState('');
   const [newSnippetText, setNewSnippetText] = useState('');
   const [copiedSnippetId, setCopiedSnippetId] = useState<string | null>(null);
+  const [snippetMode, setSnippetMode] = useState<'copy' | 'delete' | 'edit'>('copy');
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' as const });
 
   const selectedFolder = useMemo(() => {
     return folders.find(folder => folder.id === selectedFolderId) || null;
@@ -201,17 +204,56 @@ function App() {
 
   // Copy handler with feedback
   const handleCopySnippetWithFeedback = useCallback((snippet: TextSnippet) => {
+      // If in delete mode, delete the snippet instead of copying
+      if (snippetMode === 'delete') {
+        handleDeleteSnippet(snippet.id);
+        return;
+      }
+      
       navigator.clipboard.writeText(snippet.text)
         .then(() => {
           console.log("Text copied to clipboard");
+          // Show toast notification instead of inline message
+          setToast({
+            visible: true,
+            message: 'Copied to clipboard!',
+            type: 'success'
+          });
+          // Still set copiedSnippetId for visual feedback in the UI
           setCopiedSnippetId(snippet.id);
           setTimeout(() => setCopiedSnippetId(null), 1500);
         })
         .catch(err => {
           console.error("Failed to copy text:", err);
-          alert("Could not copy text to clipboard.");
+          setToast({
+            visible: true,
+            message: 'Failed to copy to clipboard',
+            type: 'error'
+          });
         });
-    }, []);
+    }, [snippetMode]);
+    
+  // Delete snippet handler
+  const handleDeleteSnippet = useCallback((snippetId: string) => {
+    if (!selectedFolderId) return;
+    
+    const updatedFolders = folders.map(folder => {
+      if (folder.id === selectedFolderId) {
+        return {
+          ...folder,
+          snippets: folder.snippets.filter(snippet => snippet.id !== snippetId)
+        };
+      }
+      return folder;
+    });
+    
+    setFolders(updatedFolders);
+    // Save to storage
+    storage.setItem('local:folders', updatedFolders).catch((err: unknown) => {
+      console.error("Failed to save folders after deleting snippet:", err);
+      alert(`Failed to delete snippet: ${err instanceof Error ? err.message : String(err)}`);
+    });
+  }, [folders, selectedFolderId]);
 
   // --- Rendering Logic ---
   if (isLoading) {
@@ -227,6 +269,13 @@ function App() {
   // Apply Tailwind classes to the main App structure
   return (
     <div className="flex flex-col h-full w-full bg-white text-gray-800 text-sm">
+      {/* Toast notification */}
+      <Toast 
+        message={toast.message}
+        isVisible={toast.visible}
+        type={toast.type}
+        onClose={() => setToast(prev => ({ ...prev, visible: false }))}
+      />
       
       <h1 className="text-xl font-semibold text-center py-3 border-b border-gray-200 text-gray-700">Peti Rahsia</h1>
       {authError && <p className="text-red-600 text-xs mt-2 text-center">{authError}</p>}
@@ -264,11 +313,36 @@ function App() {
         <div className="flex-grow p-3 overflow-y-auto">
             {selectedFolder ? (
                 <div className="flex flex-col h-full">
-                    {/* SnippetList likely needs its own Tailwind refactoring */}
+                    {/* Mode toggle button */}
+                    <div className="flex justify-end mb-2">
+                        <button
+                            className={`py-1 px-2 text-xs rounded transition-colors duration-200 ease-in-out ${
+                                snippetMode === 'copy' 
+                                    ? 'bg-blue-600 text-white' 
+                                    : snippetMode === 'delete' 
+                                        ? 'bg-red-600 text-white' 
+                                        : 'bg-yellow-500 text-white'
+                            }`}
+                            onClick={() => {
+                                setSnippetMode(current => {
+                                    if (current === 'copy') return 'delete';
+                                    if (current === 'delete') return 'edit';
+                                    if (current === 'edit') return 'copy';
+                                    return 'copy';
+                                });
+                            }}
+                        >
+                            Mode: {snippetMode.charAt(0).toUpperCase() + snippetMode.slice(1)}
+                        </button>
+                    </div>
+                    
+                    {/* SnippetList with mode and handlers */}
                     <SnippetList
                         snippets={selectedFolder.snippets}
                         onCopySnippet={handleCopySnippetWithFeedback} // Use feedback handler
                         copiedSnippetId={copiedSnippetId} // Pass copied ID
+                        onDeleteSnippet={handleDeleteSnippet} // Pass delete handler
+                        mode={snippetMode} // Pass current mode
                     />
                      {/* Add Snippet Form */}
                     <div className="mt-auto pt-3 border-t border-gray-200"> {/* Pushes form to bottom */}
