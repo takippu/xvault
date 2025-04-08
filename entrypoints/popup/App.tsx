@@ -118,9 +118,22 @@ function App() {
       const storedFolders = await storage.getItem<Folder[]>('local:folders');
       console.log("Loaded data:", { passwordInfo: storedPasswordInfo, folders: storedFolders });
 
+      // Check if we have a session-based authentication
+      const sessionAuth = sessionStorage.getItem('authenticated');
+      console.log("Session authentication state:", sessionAuth);
+
       if (storedPasswordInfo?.hash && storedPasswordInfo?.salt) {
         setPasswordInfo(storedPasswordInfo);
-        setIsAuthenticated(false);
+        // If we have session authentication, skip password prompt
+        // Using loose equality (==) instead of strict equality (===) to handle potential type coercion
+        // or simply check if the value exists and is truthy
+        if (sessionAuth) {
+          console.log("Using session authentication");
+          setIsAuthenticated(true);
+        } else {
+          console.log("No session authentication found, requiring password");
+          setIsAuthenticated(false);
+        }
       } else {
         setPasswordInfo(null);
         setIsAuthenticated(true);
@@ -139,7 +152,7 @@ function App() {
   }, [loadData]);
 
   // --- Handler Functions ---
-  const handleLogin = useCallback(async (passwordAttempt: string) => {
+  const handleLogin = useCallback(async (passwordAttempt: string, rememberMe: boolean = false) => {
     if (!passwordInfo) {
         setAuthError("Password not set or data corrupted.");
         return;
@@ -149,6 +162,20 @@ function App() {
         const saltBuffer = hexToBuffer(passwordInfo.salt);
         const isValid = await verifyPassword(passwordAttempt, passwordInfo.hash, saltBuffer);
         setIsAuthenticated(isValid);
+        
+        if (isValid) {
+          // Always clear previous session authentication first
+          sessionStorage.removeItem('authenticated');
+          
+          if (rememberMe) {
+            // Store authentication state in session storage if remember me is checked
+            console.log("Setting session authentication to true");
+            sessionStorage.setItem('authenticated', 'true');
+          } else {
+            console.log("Remember me not checked, no session persistence");
+          }
+        }
+        
         if (!isValid) setAuthError("Incorrect password.");
     } catch (error) {
         console.error("Error verifying password:", error);
@@ -367,6 +394,44 @@ function App() {
       setAuthError(`Failed to change password: ${error instanceof Error ? error.message : String(error)}`);
     }
   }, [passwordInfo]);
+  
+  // Handle removing password protection
+  const handleRemovePassword = useCallback(async (currentPassword: string) => {
+    if (!passwordInfo) {
+      setAuthError("No password is currently set.");
+      return;
+    }
+    
+    setAuthError(null);
+    try {
+      // Verify current password
+      const saltBuffer = hexToBuffer(passwordInfo.salt);
+      const isValid = await verifyPassword(currentPassword, passwordInfo.hash, saltBuffer);
+      
+      if (!isValid) {
+        setAuthError("Current password is incorrect.");
+        return;
+      }
+      
+      // Remove password info from storage
+      await storage.removeItem('local:passwordInfo');
+      setPasswordInfo(null);
+      setIsAuthenticated(true); // No password means authenticated
+      
+      // Clear session storage authentication
+      console.log("Clearing session authentication on password removal");
+      sessionStorage.removeItem('authenticated');
+      
+      setToast({
+        visible: true,
+        message: 'Password protection removed successfully!',
+        type: 'success'
+      });
+    } catch (error) {
+      console.error("Error removing password:", error);
+      setAuthError(`Failed to remove password: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }, [passwordInfo]);
 
   // --- Rendering Logic ---
   if (isLoading) {
@@ -386,6 +451,7 @@ function App() {
         passwordInfo={passwordInfo}
         onSetPassword={handleSetPassword}
         onChangePassword={handleChangePassword}
+        onRemovePassword={handleRemovePassword}
         onBack={() => setShowSettings(false)}
         authError={authError}
       />

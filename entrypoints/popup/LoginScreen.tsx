@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 
 interface LoginScreenProps {
-  onLogin: (password: string) => Promise<void>; // Function to call when login is attempted
+  onLogin: (password: string, rememberMe?: boolean) => Promise<void>; // Function to call when login is attempted
   authError: string | null; // Error message from App component
 }
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, authError }) => {
   const [passwordAttempt, setPasswordAttempt] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleSubmit = (event?: React.FormEvent) => {
     event?.preventDefault(); // Prevent default form submission if used in a form
-    onLogin(passwordAttempt);
+    onLogin(passwordAttempt, rememberMe);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -35,6 +36,19 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, authError }) => {
           aria-label="Password"
           autoFocus
         />
+        <div className="flex items-center mb-4">
+          <input
+            id="rememberMe"
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700">
+            Remember me until browser closes
+          </label>
+        </div>
+        
         <button
           type="submit" // Use type="submit" within a form
           className="w-full py-2 px-4 border-none rounded bg-blue-600 text-white cursor-pointer transition-colors duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"

@@ -1,11 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { FiArrowLeft } from 'react-icons/fi';
+import { FiArrowLeft, FiUnlock } from 'react-icons/fi';
 import { StoredPasswordInfo } from './App';
 
 interface SettingsProps {
   passwordInfo: StoredPasswordInfo | null;
   onSetPassword: (newPassword: string) => Promise<void>;
   onChangePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  onRemovePassword?: (currentPassword: string) => Promise<void>;
   onBack: () => void;
   authError: string | null;
 }
@@ -14,6 +15,7 @@ const Settings: React.FC<SettingsProps> = ({
   passwordInfo,
   onSetPassword,
   onChangePassword,
+  onRemovePassword,
   onBack,
   authError
 }) => {
@@ -23,11 +25,12 @@ const Settings: React.FC<SettingsProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
   // Determine if we're setting a new password or changing existing one
   const isSettingNewPassword = !passwordInfo;
 
-  // Handle form submission
+  // Handle form submission for setting/changing password
   const handleSubmit = useCallback(async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
@@ -69,6 +72,29 @@ const Settings: React.FC<SettingsProps> = ({
       // Error will be handled by the parent component via authError prop
     }
   }, [currentPassword, newPassword, confirmPassword, isSettingNewPassword, onSetPassword, onChangePassword]);
+
+  // Handle removing password
+  const handleRemovePassword = useCallback(async () => {
+    if (!onRemovePassword) return;
+    
+    setError(null);
+    setSuccess(null);
+    
+    if (!currentPassword) {
+      setError('Current password is required to remove password protection');
+      return;
+    }
+    
+    try {
+      await onRemovePassword(currentPassword);
+      setSuccess('Password protection removed successfully!');
+      setCurrentPassword('');
+      setShowRemoveConfirm(false);
+    } catch (error) {
+      console.error('Error removing password:', error);
+      // Error will be handled by the parent component via authError prop
+    }
+  }, [currentPassword, onRemovePassword]);
 
   return (
     <div className="flex flex-col h-full w-full bg-white text-gray-800 text-sm">
@@ -144,6 +170,61 @@ const Settings: React.FC<SettingsProps> = ({
               {isSettingNewPassword ? 'Set Password' : 'Change Password'}
             </button>
           </form>
+          
+          {/* Remove Password section - only shown when password is set */}
+          {!isSettingNewPassword && onRemovePassword && (
+            <div className="mt-8 border-t pt-6 border-gray-200">
+              <h3 className="text-md font-medium mb-4 flex items-center">
+                <FiUnlock className="mr-2" />
+                Remove Password Protection
+              </h3>
+              
+              {!showRemoveConfirm ? (
+                <button
+                  onClick={() => setShowRemoveConfirm(true)}
+                  className="w-full py-2 px-4 border border-red-300 rounded bg-white text-red-600 cursor-pointer transition-colors duration-200 ease-in-out hover:bg-red-50"
+                >
+                  Remove Password
+                </button>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">
+                    Enter your current password to remove password protection. This will allow anyone to access your snippets without authentication.
+                  </p>
+                  <div>
+                    <label htmlFor="removePasswordCurrent" className="block text-sm font-medium text-gray-700 mb-1">
+                      Current Password
+                    </label>
+                    <input
+                      id="removePasswordCurrent"
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={handleRemovePassword}
+                      className="flex-1 py-2 px-4 border-none rounded bg-red-600 text-white cursor-pointer transition-colors duration-200 ease-in-out hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    >
+                      Confirm Removal
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowRemoveConfirm(false);
+                        setCurrentPassword('');
+                        setError(null);
+                      }}
+                      className="flex-1 py-2 px-4 border border-gray-300 rounded bg-white text-gray-700 cursor-pointer transition-colors duration-200 ease-in-out hover:bg-gray-100"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Error messages */}
           {(error || authError) && (
