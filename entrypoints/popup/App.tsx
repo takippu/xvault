@@ -5,7 +5,7 @@ import FolderList from './FolderList';
 import SnippetList from './SnippetList';
 import Toast from './Toast';
 import Settings from './Settings';
-import { FiPlus, FiSearch, FiSettings, FiCopy, FiEdit, FiTrash2, FiInfo } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiSettings, FiCopy, FiEdit, FiTrash2, FiInfo, FiLock } from 'react-icons/fi'; // Added FiLock
 import { ThemeProvider } from './contexts/ThemeContext';
 import ThemeToggle from './components/ThemeToggle';
 import About from './components/About';
@@ -94,6 +94,19 @@ const AppContent = () => {
   const [showAbout, setShowAbout] = useState(false); // State to toggle About page visibility
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set()); // Track which folders are open
 
+  // --- Lock Extension Handler ---
+  const handleLockExtension = useCallback(() => {
+    if (!passwordInfo) {
+      // If no password is set, the button should be disabled, but double-check here.
+      console.log("No password set, cannot lock.");
+      return;
+    }
+    console.log("Locking extension: Clearing session authentication and closing popup.");
+    sessionStorage.removeItem('authenticated');
+    setIsAuthenticated(false); // Trigger re-authentication
+    window.close(); // Close the popup window
+  }, [passwordInfo]); // Dependency on passwordInfo
+
   const selectedFolder = useMemo(() => {
     return folders.find(folder => folder.id === selectedFolderId) || null;
   }, [folders, selectedFolderId]);
@@ -123,19 +136,17 @@ const AppContent = () => {
       console.log("Loaded data:", { passwordInfo: storedPasswordInfo, folders: storedFolders });
 
       // Check if we have a session-based authentication
-      const sessionAuth = sessionStorage.getItem('authenticated');
+      const sessionAuth = sessionStorage.getItem('authenticated') === 'true';
       console.log("Session authentication state:", sessionAuth);
 
       if (storedPasswordInfo?.hash && storedPasswordInfo?.salt) {
         setPasswordInfo(storedPasswordInfo);
-        // If we have session authentication, skip password prompt
-        // Using loose equality (==) instead of strict equality (===) to handle potential type coercion
-        // or simply check if the value exists and is truthy
+        // If we have valid session authentication, skip password prompt
         if (sessionAuth) {
           console.log("Using session authentication");
           setIsAuthenticated(true);
         } else {
-          console.log("No session authentication found, requiring password");
+          console.log("No valid session authentication found, requiring password");
           setIsAuthenticated(false);
         }
       } else {
@@ -526,12 +537,22 @@ const AppContent = () => {
           >
             <FiInfo size={18} className="text-primary" />
           </button>
+          {/* Settings Button */}
           <button
             onClick={() => setShowSettings(true)}
             className="p-2 rounded-full hover:hover-color transition-colors duration-200"
             title="Settings"
           >
             <FiSettings size={18} className="text-primary" />
+          </button>
+          {/* Lock Button */}
+          <button
+            onClick={handleLockExtension}
+            className={`p-2 rounded-full hover:hover-color transition-colors duration-200 ${!passwordInfo ? 'opacity-50 cursor-not-allowed' : ''}`}
+            title={passwordInfo ? "Lock Extension" : "Set a password to enable locking"}
+            disabled={!passwordInfo} // Disable if no password is set
+          >
+            <FiLock size={18} className="text-primary" />
           </button>
         </div>
       </div>

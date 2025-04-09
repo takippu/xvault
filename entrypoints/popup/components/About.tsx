@@ -1,10 +1,11 @@
 import React from 'react';
+import { FiGlobe, FiGithub, FiLinkedin } from 'react-icons/fi';
 
 const About: React.FC = () => {
   const socialLinks = [
-    { name: 'Website', url: '#', icon: '🌐' },
-    { name: 'GitHub', url: '#', icon: '💻' },
-    { name: 'LinkedIn', url: '#', icon: '🔗' },
+    { name: 'Website', url: '#', icon: <FiGlobe size={18} /> },
+    { name: 'GitHub', url: '#', icon: <FiGithub size={18} /> },
+    { name: 'LinkedIn', url: '#', icon: <FiLinkedin size={18} /> },
   ];
 
   return (
@@ -51,26 +52,30 @@ const About: React.FC = () => {
 
       {/* Developer Section */}
       <div className="mt-auto pt-4 border-t border-color">
-        <h2 className="text-lg font-semibold mb-3">Developer</h2>
-        <div className="mb-3">
-          <p className="text-sm">[Developer Name]</p>
-          <p className="text-xs text-secondary">Full Stack Developer</p>
-        </div>
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-lg font-semibold mb-3">Developer</h2>
+            <div className="mb-3">
+              <p className="text-sm">[Developer Name]</p>
+              <p className="text-xs text-secondary">Full Stack Developer</p>
+            </div>
+          </div>
 
-        {/* Social Links */}
-        <div className="flex gap-3">
-          {socialLinks.map((link) => (
-            <a
-              key={link.name}
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center p-2 rounded hover-color transition-colors duration-150"
-              title={link.name}
-            >
-              <span className="text-lg">{link.icon}</span>
-            </a>
-          ))}
+          {/* Social Links - With React Icons */}
+          <div className="flex gap-3">
+            {socialLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center p-2 rounded hover-color transition-colors duration-150"
+                title={link.name}
+              >
+                {link.icon}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </div>
