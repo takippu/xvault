@@ -5,9 +5,10 @@ import FolderList from './FolderList';
 import SnippetList from './SnippetList';
 import Toast from './Toast';
 import Settings from './Settings';
-import { FiPlus, FiSearch, FiSettings, FiCopy, FiEdit, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiSettings, FiCopy, FiEdit, FiTrash2, FiInfo } from 'react-icons/fi';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ThemeToggle from './components/ThemeToggle';
+import About from './components/About';
 
 // --- Crypto Utilities ---
 
@@ -90,6 +91,7 @@ const AppContent = () => {
   const [searchQuery, setSearchQuery] = useState(''); // State for search functionality
   const [showSidebar, setShowSidebar] = useState(true); // State to toggle sidebar visibility
   const [showSettings, setShowSettings] = useState(false); // State to toggle Settings page visibility
+  const [showAbout, setShowAbout] = useState(false); // State to toggle About page visibility
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set()); // Track which folders are open
 
   const selectedFolder = useMemo(() => {
@@ -466,7 +468,7 @@ const AppContent = () => {
     return <LoginScreen onLogin={handleLogin} authError={authError} />;
   }
   
-  // Show Settings page if it's active
+  // Show Settings or About page if they're active
   if (showSettings) {
     return (
       <Settings
@@ -479,6 +481,24 @@ const AppContent = () => {
         folders={folders}
         onImportData={handleImportData}
       />
+    );
+  }
+
+  if (showAbout) {
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setShowAbout(false)}
+          className="absolute top-3 right-3 p-2 rounded-full hover:hover-color transition-colors duration-200"
+          title="Close"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <About />
+      </div>
     );
   }
 
@@ -499,6 +519,13 @@ const AppContent = () => {
       </h1>      
       <div className="flex items-center gap-2">
           <ThemeToggle />
+          <button
+            onClick={() => setShowAbout(true)}
+            className="p-2 rounded-full hover:hover-color transition-colors duration-200"
+            title="About"
+          >
+            <FiInfo size={18} className="text-primary" />
+          </button>
           <button
             onClick={() => setShowSettings(true)}
             className="p-2 rounded-full hover:hover-color transition-colors duration-200"
