@@ -296,42 +296,90 @@ const Settings: React.FC<SettingsProps> = ({
                   </div>
                 )}
                 
-                <button
-                  onClick={async () => {
-                    try {
-                      setError(null);
-                      setExportResult(null);
-                      
-                      if (exportEncrypt && !exportPassword) {
-                        setError('Password is required for encrypted export');
-                        return;
+                <div className="flex space-x-2">
+                  <button
+                    onClick={async () => {
+                      try {
+                        setError(null);
+                        setExportResult(null);
+                        
+                        if (exportEncrypt && !exportPassword) {
+                          setError('Password is required for encrypted export');
+                          return;
+                        }
+                        
+                        const dataToExport = {
+                          folders,
+                          passwordInfo: passwordInfo || undefined
+                        };
+                        
+                        const result = await exportData(dataToExport, exportEncrypt, exportPassword);
+                        setExportResult(result);
+                        setToast({
+                          visible: true,
+                          message: 'Data exported successfully!',
+                          type: 'success'
+                        });
+                      } catch (err) {
+                        console.error('Export error:', err);
+                        setToast({
+                          visible: true,
+                          message: `Export failed: ${err instanceof Error ? err.message : String(err)}`,
+                          type: 'error'
+                        });
                       }
-                      
-                      const dataToExport = {
-                        folders,
-                        passwordInfo: passwordInfo || undefined
-                      };
-                      
-                      const result = await exportData(dataToExport, exportEncrypt, exportPassword);
-                      setExportResult(result);
-                      setToast({
-                        visible: true,
-                        message: 'Data exported successfully!',
-                        type: 'success'
-                      });
-                    } catch (err) {
-                      console.error('Export error:', err);
-                      setToast({
-                        visible: true,
-                        message: `Export failed: ${err instanceof Error ? err.message : String(err)}`,
-                        type: 'error'
-                      });
-                    }
-                  }}
-                  className="w-full py-2 px-4 border-none rounded bg-blue-600 text-white cursor-pointer transition-colors duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                  Export
-                </button>
+                    }}
+                    className="flex-1 py-2 px-4 border-none rounded bg-blue-600 text-white cursor-pointer transition-colors duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    Copy to Clipboard
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        setError(null);
+                        
+                        if (exportEncrypt && !exportPassword) {
+                          setError('Password is required for encrypted export');
+                          return;
+                        }
+                        
+                        const dataToExport = {
+                          folders,
+                          passwordInfo: passwordInfo || undefined
+                        };
+                        
+                        const result = await exportData(dataToExport, exportEncrypt, exportPassword);
+                        
+                        // Create blob and download link
+                        const blob = new Blob([result], { type: 'text/plain' });
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `petirahsia-export${exportEncrypt ? '.txt' : '.json'}`;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                        
+                        setToast({
+                          visible: true,
+                          message: 'File downloaded successfully!',
+                          type: 'success'
+                        });
+                      } catch (err) {
+                        console.error('Export error:', err);
+                        setToast({
+                          visible: true,
+                          message: `Export failed: ${err instanceof Error ? err.message : String(err)}`,
+                          type: 'error'
+                        });
+                      }
+                    }}
+                    className="flex-1 py-2 px-4 border-none rounded bg-blue-600 text-white cursor-pointer transition-colors duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    Save as File
+                  </button>
+                </div>
                 
                 {exportResult && (
                   <div className="mt-3">
