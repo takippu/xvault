@@ -494,7 +494,7 @@ const AppContent = () => {
       />
 
       <div className="flex items-center justify-between py-3 border-b border-color px-3">
-      <h1 className="neon-text text-2xl font-bold text-primary">
+      <h1 className="neon-text text-2xl font-bold ">
         Peti Rahsia
       </h1>      
       <div className="flex items-center gap-2">
@@ -603,9 +603,10 @@ const AppContent = () => {
             {selectedFolder ? (
                 <div className="flex flex-col h-full">
                     {/* Search and Mode toggle buttons */}
-                    <div className="flex justify-between items-center mb-2">                        
-                        {/* Search input */}
-                        <div className="relative flex-grow mr-2">
+                    {/* Removed justify-between, added gap-2. Removed flex-grow and mr-2 from search container */}
+                    <div className="flex items-center gap-3 mb-2">
+                        {/* Search input - Added flex-1 */}
+                        <div className="relative flex-1/2">
                             <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
                                 <FiSearch className="text-primary" size={14} />
                             </div>
@@ -618,9 +619,9 @@ const AppContent = () => {
                             />
                         </div>
 
-                        {/* Mode toggle button */}
+                        {/* Mode toggle button - Added flex-1, flex, justify-center, items-center, gap-1 */}
                         <button
-                            className={`p-1.5 rounded transition-colors duration-200 ease-in-out cursor-pointer ${
+                            className={`flex-1 flex justify-center items-center gap-3 p-1.5 rounded transition-colors duration-200 ease-in-out cursor-pointer ${
                                 snippetMode === 'copy' 
                                     ? 'bg-green-600 text-white' 
                                     : snippetMode === 'delete' 
@@ -637,7 +638,7 @@ const AppContent = () => {
                             }}
                             title={`Mode: ${snippetMode.charAt(0).toUpperCase() + snippetMode.slice(1)}`}
                         >
-                            mode:
+                            <span>Mode:</span> 
                             {snippetMode === 'copy' && <FiCopy size={14} />}
                             {snippetMode === 'delete' && <FiTrash2 size={14} />}
                             {snippetMode === 'edit' && <FiEdit size={14} />}

@@ -66,7 +66,7 @@ const SnippetList: React.FC<SnippetListProps> = ({
                     {snippet.title && (
                       <>
                         {/* Apply hover background only to the hidden text span */}
-                        <span className="hidden group-hover:inline text-primary  p-1 rounded">{snippet.text}</span>
+                        <span className="hidden group-hover:inline text-hovers font-black  p-1 rounded">{snippet.text}</span>
                         {/* Hide label on hover */}
                         <span className="absolute top-0 right-0 text-[10px] text-primary bg-secondary-base px-1 rounded-bl group-hover:hidden">
                           Hover to see content

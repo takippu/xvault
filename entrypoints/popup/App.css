@@ -16,14 +16,17 @@
   --color-hover: #fcfcf8; */
 
   /* new styling */
-  --color-base: #ffffff;
-  --color-secondary-base: #1979ff;
-  --color-primary-btn: #0077ff;
-  --color-secondary-btn: #7310ff;
-  --color-primary-text: #020405;
-  --color-secondary-text: #7f8c8d;
-  --color-border: #e2e8f0;
-  --color-hover: #fcfcf8;
+  --color-base: #fff6f9;
+  --color-secondary-base: #fff2f2;
+  --color-primary-btn: #ff679e;
+  --color-secondary-btn: #ffafcc;
+  --color-primary-text: #000000;
+  --color-secondary-text: #ffb700;
+  --color-hovers-text: #f40480;
+  --color-border: #94969b39;
+  --color-hover: #0564e1;
+  --color-neon-text: #ff70a6;
+  --color-neon-glow: #fbfbfb;
 }
 
 :root.dark {
@@ -44,8 +47,11 @@
   --color-secondary-btn: #404d64;
   --color-primary-text: #e2e8f0;
   --color-secondary-text: #2a2525;
+  --color-hovers-text: #8e6ff3;
   --color-border: #94969b39;
   --color-hover: #0564e1;
+  --color-neon-text: #d6d6d6;
+  --color-neon-glow: #cd17ff;
 }
 
 /* Maintain popup dimensions */
@@ -68,6 +74,10 @@ body {
 
 .text-primary {
   color: var(--color-primary-text) !important;
+}
+
+.text-hovers {
+  color: var(--color-hovers-text) !important;
 }
 
 .border-color {
@@ -110,10 +120,11 @@ button.secondary:hover {
 }
 
 .neon-text {
-  color: var(--color-secondary-base);
-  text-shadow: 0 0 5px var(--color-primary-btn), 
-               0 0 10px var(--color-primary-btn), 
-               0 0 15px var(--color-secondary-btn);
+  color: var(--color-neon-text);
+  text-shadow: 0 0 5px var(--color-neon-text), 
+               0 0 10px var(--color-neon-text), 
+               0 0 15px var(--color-neon-glow);
   font-weight: bold;
+  
 }
 
