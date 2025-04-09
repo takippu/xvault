@@ -2,9 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Light theme variables */
+  --color-base: #ffffff;
+  --color-primary-btn: #4a90e2;
+  --color-secondary-btn: #f5f7fa;
+  --color-primary-text: #2c3e50;
+  --color-secondary-text: #7f8c8d;
+  --color-border: #e2e8f0;
+  --color-hover: #f8fafc;
+}
+
+:root.dark {
+  /* Dark theme variables */
+  --color-base: #1a1f36;
+  --color-primary-btn: #4a90e2;
+  --color-secondary-btn: #2d3748;
+  --color-primary-text: #e2e8f0;
+  --color-secondary-text: #a0aec0;
+  --color-border: #2d3748;
+  --color-hover: #2a3441;
+}
+
 /* Maintain popup dimensions */
 html, body, #root {
-  width: 450px; /* Or your desired width */
-  height: 500px; /* Or your desired height */
-  overflow: hidden; /* Prevent scrollbars on body */
+  width: 450px;
+  height: 500px;
+  overflow: hidden;
+}
+
+/* Apply theme colors */
+body {
+  background-color: var(--color-base);
+  color: var(--color-primary-text);
+}
+
+/* Apply theme colors to common elements */
+.bg-white {
+  background-color: var(--color-base) !important;
+}
+
+.text-gray-800 {
+  color: var(--color-primary-text) !important;
+}
+
+.border-gray-200 {
+  border-color: var(--color-border) !important;
+}
+
+.bg-gray-50 {
+  background-color: var(--color-hover) !important;
+}
+
+.hover\:bg-gray-100:hover {
+  background-color: var(--color-hover) !important;
+}
+
+.text-gray-600 {
+  color: var(--color-secondary-text) !important;
+}
+
+.text-gray-700 {
+  color: var(--color-primary-text) !important;
+}
+
+button.primary {
+  background-color: var(--color-primary-btn);
+  color: var(--color-primary-text);
+}
+
+button.secondary {
+  background-color: var(--color-secondary-btn);
+  color: var(--color-secondary-text);
 }

@@ -6,6 +6,8 @@ interface FolderListProps {
   selectedFolderId: string | null;
   onSelectFolder: (folderId: string) => void;
   onDeleteFolder?: (folderId: string) => void; // Optional delete handler
+  openFolders: Set<string>; // Track which folders are open
+  onToggleFolder: (folderId: string) => void; // Handle folder open/close
 }
 
 const FolderList: React.FC<FolderListProps> = ({
@@ -13,6 +15,8 @@ const FolderList: React.FC<FolderListProps> = ({
   selectedFolderId,
   onSelectFolder,
   onDeleteFolder,
+  openFolders,
+  onToggleFolder,
 }) => {
   // Apply Tailwind classes
   return (
@@ -36,10 +40,16 @@ const FolderList: React.FC<FolderListProps> = ({
                   : 'text-gray-700 hover:bg-gray-200'
                 }
               `}
-              onClick={() => onSelectFolder(folder.id)}
+              onClick={(e) => {
+                if (e.target === e.currentTarget || e.target instanceof HTMLSpanElement) {
+                  onSelectFolder(folder.id);
+                }
+              }}
             >
-              {/* Folder name with truncation */}
-              <span className="truncate mr-2 flex-grow">{folder.name}</span>
+              {/* Folder name */}
+              <div className="flex items-center flex-grow">
+                <span className="truncate">{folder.name}</span>
+              </div>
               {/* Snippet count, adjust color when selected */}
               <span className={`
                 whitespace-nowrap text-xs

@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { storage } from '@wxt-dev/storage'; // Correct import path
-// Removed App.css import, it's handled in main.tsx
+import { storage } from '@wxt-dev/storage';
 import LoginScreen from './LoginScreen';
-import FolderList from './FolderList';   // Import FolderList
-import SnippetList from './SnippetList'; // Import SnippetList
-import Toast from './Toast'; // Import Toast component
-import Settings from './Settings'; // Import Settings component
-import { FiPlus, FiSearch, FiSettings } from 'react-icons/fi'; // Import icons for plus, search, and settings
+import FolderList from './FolderList';
+import SnippetList from './SnippetList';
+import Toast from './Toast';
+import Settings from './Settings';
+import { FiPlus, FiSearch, FiSettings } from 'react-icons/fi';
+import { ThemeProvider } from './contexts/ThemeContext';
+import ThemeToggle from './components/ThemeToggle';
 
 // --- Crypto Utilities ---
 
@@ -71,7 +72,7 @@ export interface StoredPasswordInfo {
     salt: string;
 }
 
-function App() {
+const AppContent = () => {
   const [passwordInfo, setPasswordInfo] = useState<StoredPasswordInfo | null>(null);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -89,6 +90,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState(''); // State for search functionality
   const [showSidebar, setShowSidebar] = useState(true); // State to toggle sidebar visibility
   const [showSettings, setShowSettings] = useState(false); // State to toggle Settings page visibility
+  const [openFolders, setOpenFolders] = useState<Set<string>>(new Set()); // Track which folders are open
 
   const selectedFolder = useMemo(() => {
     return folders.find(folder => folder.id === selectedFolderId) || null;
@@ -493,13 +495,16 @@ function App() {
       
       <div className="flex items-center justify-between py-3 border-b border-gray-200 px-3">
         <h1 className="text-xl font-semibold text-gray-700">Peti Rahsia</h1>
-        <button 
-          onClick={() => setShowSettings(true)}
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
-          title="Settings"
-        >
-          <FiSettings size={18} className="text-gray-600" />
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button 
+            onClick={() => setShowSettings(true)}
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+            title="Settings"
+          >
+            <FiSettings size={18} className="text-gray-600" />
+          </button>
+        </div>
       </div>
       {authError && <p className="text-red-600 text-xs mt-2 text-center">{authError}</p>}
 
@@ -513,8 +518,7 @@ function App() {
             title="Show folders"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="9" y1="3" x2="9" y2="21"></line>
+              <path d="M9 18l6-6-6-6"/>
             </svg>
           </button>
         )}
@@ -531,8 +535,7 @@ function App() {
                 title="Hide folders"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="9" y1="3" x2="9" y2="21"></line>
+                  <path d="M15 18l-6-6 6-6"/>
                 </svg>
               </button>
             )}
@@ -542,6 +545,18 @@ function App() {
                 folders={folders}
                 selectedFolderId={selectedFolderId}
                 onSelectFolder={setSelectedFolderId}
+                openFolders={openFolders}
+                onToggleFolder={(folderId) => {
+                  setOpenFolders(prev => {
+                    const newSet = new Set(prev);
+                    if (newSet.has(folderId)) {
+                      newSet.delete(folderId);
+                    } else {
+                      newSet.add(folderId);
+                    }
+                    return newSet;
+                  });
+                }}
             />
             
             {/* Add Folder Toggle Button - Only shown when sidebar is visible */}
@@ -680,6 +695,14 @@ function App() {
 
       {/* Removed Settings Area - Now in separate Settings component */}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 
