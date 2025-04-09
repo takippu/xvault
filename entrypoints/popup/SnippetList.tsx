@@ -29,41 +29,46 @@ const SnippetList: React.FC<SnippetListProps> = ({
     <div className="flex-grow overflow-y-auto mb-3">
       <h3 className="text-sm font-semibold mb-2 text-primary">Snippets</h3>
       {snippets.length === 0 ? (
-        <p className="text-xs text-gray-500">No snippets in this folder yet.</p>
+        <p className="text-xs text-secondary">No snippets in this folder yet.</p> 
       ) : (
         // Remove default list styling, add spacing between items
         <ul className="space-y-2">
           {snippets.map((snippet) => (
-            // Snippet item layout
-            <li key={snippet.id} className="flex justify-between items-start p-2 border border-gray-200 rounded bg-white">
-              {/* Snippet text area with pre-wrap, show title if available, show full text on hover */}
-              <div 
-                className="text-xs text-gray-800 whitespace-pre-wrap break-all mr-3 flex-grow bg-gray-50 p-1.5 rounded font-mono relative cursor-default"
+            // Conditionally add 'group' class only if snippet has a title
+            <li key={snippet.id} className={`${snippet.title ? 'group' : ''} flex justify-between items-start p-2 border border-color rounded bg-base`}>
+              {/* Snippet text area - Apply theme classes */}
+              <div
+                className="text-xs text-primary whitespace-pre-wrap break-all mr-3 flex-grow bg-secondary-base p-1.5 rounded font-mono relative cursor-default"
               >
                 {editingSnippetId === snippet.id ? (
                   <div className="space-y-1">
+                    {/* Apply theme classes to inputs */}
                     <input
                       type="text"
-                      className="w-full p-1 border border-gray-300 rounded text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full p-1 border border-color rounded text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-base text-primary"
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
                       placeholder="Title (optional)"
                     />
                     <textarea
-                      className="w-full p-1 border border-gray-300 rounded text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[60px]"
+                      className="w-full p-1 border border-color rounded text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[60px] bg-base text-primary"
                       value={editText}
                       onChange={(e) => setEditText(e.target.value)}
                       placeholder="Snippet text (required)"
                     />
                   </div>
                 ) : (
-                  <pre className="m-0 font-mono group relative transition-colors duration-200 ease-in-out hover:bg-blue-100 dark:hover:bg-blue-700 p-1 rounded">
-                    {/* Show title by default, show full text on hover */}
+                  /* Remove group class from pre tag */
+                  <pre className="m-0 font-mono relative p-1 rounded">
+                    {/* Show title or text by default */}
                     <span className="block group-hover:hidden">{snippet.title || snippet.text}</span>
+                    {/* Only show hidden text and apply hover effect if title exists */}
                     {snippet.title && (
                       <>
-                        <span className="hidden group-hover:inline dark:text-white">{snippet.text}</span>
-                        <span className="absolute top-0 right-0 text-[10px] text-gray-500 bg-gray-100 px-1 rounded-bl">
+                        {/* Apply hover background only to the hidden text span */}
+                        <span className="hidden group-hover:inline text-primary  p-1 rounded">{snippet.text}</span>
+                        {/* Hide label on hover */}
+                        <span className="absolute top-0 right-0 text-[10px] text-primary bg-secondary-base px-1 rounded-bl group-hover:hidden">
                           Hover to see content
                         </span>
                       </>
