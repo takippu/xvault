@@ -43,17 +43,19 @@ const FolderList: React.FC<FolderListProps> = ({
               // Call onSelectFolder directly when the list item is clicked
               onClick={() => onSelectFolder(folder.id)}
             >
-              {/* Folder name */}
-              <div className="flex items-center flex-grow">
-                <span className="truncate">{folder.name}</span>
+              {/* Folder name and count container */}
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center flex-grow">
+                  <span className="truncate">{folder.name}</span>
+                </div>
+                {/* Snippet count, adjust color when selected */}
+                <span className={`
+                  whitespace-nowrap text-xs
+                  ${folder.id === selectedFolderId ? 'text-primary' : 'text-primary'}
+                `}>
+                  ({folder.snippets.length})
+                </span>
               </div>
-              {/* Snippet count, adjust color when selected */}
-              <span className={`
-                whitespace-nowrap text-xs
-                ${folder.id === selectedFolderId ? 'text-primary' : 'text-primary'}
-              `}>
-                ({folder.snippets.length})
-              </span>
               {/* Optional: Add delete button later */}
               {/* {onDeleteFolder && (
                 <button

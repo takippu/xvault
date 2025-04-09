@@ -18,12 +18,18 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>(() => {
+    // Try to get saved theme from storage
+    const savedTheme = localStorage.getItem('theme') as Theme;
+    return savedTheme || 'light';
+  });
 
   useEffect(() => {
     // Apply theme class to document root
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(theme);
+    // Save theme to storage
+    localStorage.setItem('theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
