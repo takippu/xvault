@@ -433,6 +433,26 @@ function App() {
     }
   }, [passwordInfo]);
 
+  // Handle importing data
+  const handleImportData = useCallback(async (data: { folders: Folder[], passwordInfo?: StoredPasswordInfo }) => {
+    try {
+      // Update folders
+      setFolders(data.folders);
+      await storage.setItem('local:folders', data.folders);
+      
+      // Update password info if provided
+      if (data.passwordInfo) {
+        setPasswordInfo(data.passwordInfo);
+        await storage.setItem('local:passwordInfo', data.passwordInfo);
+      }
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Error importing data:", error);
+      return Promise.reject(error);
+    }
+  }, []);
+
   // --- Rendering Logic ---
   if (isLoading) {
     // Tailwind classes for loading state
@@ -454,6 +474,8 @@ function App() {
         onRemovePassword={handleRemovePassword}
         onBack={() => setShowSettings(false)}
         authError={authError}
+        folders={folders}
+        onImportData={handleImportData}
       />
     );
   }
