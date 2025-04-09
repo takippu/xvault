@@ -29,6 +29,28 @@ export const bufferToString = (buffer: ArrayBuffer): string => {
   return new TextDecoder().decode(buffer);
 };
 
+// Convert ArrayBuffer to base64 string
+export const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  let binary = '';
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+};
+
+// Convert base64 string to ArrayBuffer
+export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
+  const binary = atob(base64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
+};
+
 // Generate a random encryption key
 export const generateEncryptionKey = async (): Promise<CryptoKey> => {
   return window.crypto.subtle.generateKey(
@@ -110,7 +132,7 @@ export const encryptData = async (data: string, password: string): Promise<strin
     result.set(new Uint8Array(encryptedBuffer), salt.length + iv.length);
     
     // Convert to base64 for easier storage/transmission
-    return btoa(bufferToString(result));
+    return arrayBufferToBase64(result);
   } catch (error) {
     console.error('Encryption error:', error);
     throw new Error('Failed to encrypt data');
@@ -121,7 +143,7 @@ export const encryptData = async (data: string, password: string): Promise<strin
 export const decryptData = async (encryptedData: string, password: string): Promise<string> => {
   try {
     // Convert from base64 to buffer
-    const encryptedBuffer = stringToBuffer(atob(encryptedData));
+    const encryptedBuffer = base64ToArrayBuffer(encryptedData);
     
     // Extract salt, iv, and encrypted data
     const salt = encryptedBuffer.slice(0, 16);

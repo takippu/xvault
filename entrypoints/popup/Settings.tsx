@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { FiArrowLeft, FiUnlock, FiDownload, FiUpload } from 'react-icons/fi';
 import { StoredPasswordInfo, Folder } from './App';
 import { exportData, importData } from './utils/importExport';
+import Toast from './Toast';
 
 interface SettingsProps {
   passwordInfo: StoredPasswordInfo | null;
@@ -37,9 +38,13 @@ const Settings: React.FC<SettingsProps> = ({
   const [exportPassword, setExportPassword] = useState('');
   const [importPassword, setImportPassword] = useState('');
   const [importData, setImportData] = useState('');
-  const [importError, setImportError] = useState<string | null>(null);
   const [exportResult, setExportResult] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Toast state
+  const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'error' }>(
+    { visible: false, message: '', type: 'success' }
+  );
 
   // Determine if we're setting a new password or changing existing one
   const isSettingNewPassword = !passwordInfo;
@@ -309,10 +314,18 @@ const Settings: React.FC<SettingsProps> = ({
                       
                       const result = await exportData(dataToExport, exportEncrypt, exportPassword);
                       setExportResult(result);
-                      setSuccess('Data exported successfully!');
+                      setToast({
+                        visible: true,
+                        message: 'Data exported successfully!',
+                        type: 'success'
+                      });
                     } catch (err) {
                       console.error('Export error:', err);
-                      setError(`Export failed: ${err instanceof Error ? err.message : String(err)}`);
+                      setToast({
+                        visible: true,
+                        message: `Export failed: ${err instanceof Error ? err.message : String(err)}`,
+                        type: 'error'
+                      });
                     }
                   }}
                   className="w-full py-2 px-4 border-none rounded bg-blue-600 text-white cursor-pointer transition-colors duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
@@ -332,7 +345,11 @@ const Settings: React.FC<SettingsProps> = ({
                       onClick={(e) => {
                         (e.target as HTMLTextAreaElement).select();
                         navigator.clipboard.writeText(exportResult);
-                        setSuccess('Exported data copied to clipboard!');
+                        setToast({
+                          visible: true,
+                          message: 'Exported data copied to clipboard!',
+                          type: 'success'
+                        });
                       }}
                     />
                     <p className="text-xs text-gray-500 mt-1">Click in the box to copy to clipboard</p>
@@ -381,10 +398,13 @@ const Settings: React.FC<SettingsProps> = ({
                     onClick={async () => {
                       try {
                         setError(null);
-                        setImportError(null);
                         
                         if (!importData.trim()) {
-                          setImportError('No data to import');
+                          setToast({
+                            visible: true,
+                            message: 'No data to import',
+                            type: 'error'
+                          });
                           return;
                         }
                         
@@ -394,13 +414,21 @@ const Settings: React.FC<SettingsProps> = ({
                           );
                           
                           await onImportData(parsedData);
-                          setSuccess('Data imported successfully!');
+                          setToast({
+                            visible: true,
+                            message: 'Data imported successfully!',
+                            type: 'success'
+                          });
                           setImportData('');
                           setImportPassword('');
                         }
                       } catch (err) {
                         console.error('Import error:', err);
-                        setImportError(`Import failed: ${err instanceof Error ? err.message : String(err)}`);
+                        setToast({
+                          visible: true,
+                          message: `Import failed: ${err instanceof Error ? err.message : String(err)}`,
+                          type: 'error'
+                        });
                       }
                     }}
                     className="w-full py-2 px-4 border-none rounded bg-blue-600 text-white cursor-pointer transition-colors duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
@@ -428,7 +456,11 @@ const Settings: React.FC<SettingsProps> = ({
                         reader.readAsText(file);
                       } catch (err) {
                         console.error('File read error:', err);
-                        setImportError(`File read failed: ${err instanceof Error ? err.message : String(err)}`);
+                        setToast({
+                          visible: true,
+                          message: `File read failed: ${err instanceof Error ? err.message : String(err)}`,
+                          type: 'error'
+                        });
                       }
                     }}
                     className="hidden"
@@ -443,9 +475,12 @@ const Settings: React.FC<SettingsProps> = ({
                   </button>
                 </div>
                 
-                {importError && (
-                  <p className="text-red-600 text-sm">{importError}</p>
-                )}
+                <Toast
+                  message={toast.message}
+                  isVisible={toast.visible}
+                  type={toast.type}
+                  onClose={() => setToast(prev => ({ ...prev, visible: false }))}
+                />
               </div>
             </div>
           </div>
