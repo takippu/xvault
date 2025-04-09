@@ -27,7 +27,7 @@ const SnippetList: React.FC<SnippetListProps> = ({
   return (
     // Container takes available space and allows scrolling
     <div className="flex-grow overflow-y-auto mb-3">
-      <h3 className="text-sm font-semibold mb-2 text-gray-600">Snippets</h3>
+      <h3 className="text-sm font-semibold mb-2 text-primary">Snippets</h3>
       {snippets.length === 0 ? (
         <p className="text-xs text-gray-500">No snippets in this folder yet.</p>
       ) : (
@@ -57,12 +57,12 @@ const SnippetList: React.FC<SnippetListProps> = ({
                     />
                   </div>
                 ) : (
-                  <pre className="m-0 font-mono group relative transition-colors duration-200 ease-in-out hover:bg-blue-100 dark:hover:bg-blue-800 p-1 rounded">
+                  <pre className="m-0 font-mono group relative transition-colors duration-200 ease-in-out hover:bg-blue-100 dark:hover:bg-blue-700 p-1 rounded">
                     {/* Show title by default, show full text on hover */}
                     <span className="block group-hover:hidden">{snippet.title || snippet.text}</span>
                     {snippet.title && (
                       <>
-                        <span className="hidden group-hover:inline">{snippet.text}</span>
+                        <span className="hidden group-hover:inline dark:text-white">{snippet.text}</span>
                         <span className="absolute top-0 right-0 text-[10px] text-gray-500 bg-gray-100 px-1 rounded-bl">
                           Hover to see content
                         </span>

@@ -22,7 +22,7 @@ const FolderList: React.FC<FolderListProps> = ({
   return (
     // Container takes available space and allows scrolling
     <div className="flex-grow overflow-y-auto mb-3">
-      <h2 className="text-sm font-semibold mb-2 text-gray-600">Folders</h2>
+      <h2 className="text-sm font-semibold mb-2 text-primary">Folders</h2>
       {folders.length === 0 ? (
         <p className="text-xs text-gray-500">No folders yet.</p>
       ) : (

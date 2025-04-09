@@ -1,27 +1,51 @@
-@tailwind base;
-@tailwind components;
+/* @tailwind base;
+@tailwind components; */
+
 @tailwind utilities;
+
 
 :root {
   /* Light theme variables */
-  --color-base: #ffffff;
+  /* old styling */
+  /* --color-base: #ffffff;
   --color-primary-btn: #4a90e2;
   --color-secondary-btn: #f5f7fa;
   --color-primary-text: #2c3e50;
   --color-secondary-text: #7f8c8d;
   --color-border: #e2e8f0;
-  --color-hover: #f8fafc;
+  --color-hover: #fcfcf8; */
+
+  /* new styling */
+  --color-base: #ffffff;
+  --color-secondary-base: #1979ff;
+  --color-primary-btn: #0077ff;
+  --color-secondary-btn: #7310ff;
+  --color-primary-text: #020405;
+  --color-secondary-text: #7f8c8d;
+  --color-border: #e2e8f0;
+  --color-hover: #fcfcf8;
 }
 
 :root.dark {
   /* Dark theme variables */
-  --color-base: #1a1f36;
+  /* old styling */
+  /* --color-base: #1a1f36;
   --color-primary-btn: #4a90e2;
   --color-secondary-btn: #2d3748;
   --color-primary-text: #e2e8f0;
   --color-secondary-text: #a0aec0;
   --color-border: #2d3748;
-  --color-hover: #2a3441;
+  --color-hover: #2a3441; */
+
+  /* new styling */
+  --color-base: #343434;
+  --color-secondary-base: rgba(95, 89, 128, 0.444);
+  --color-primary-btn: #305e93;
+  --color-secondary-btn: #404d64;
+  --color-primary-text: #e2e8f0;
+  --color-secondary-text: #2a2525;
+  --color-border: #94969b39;
+  --color-hover: #0564e1;
 }
 
 /* Maintain popup dimensions */
@@ -38,40 +62,58 @@ body {
 }
 
 /* Apply theme colors to common elements */
-.bg-white {
+.bg-base {
   background-color: var(--color-base) !important;
 }
 
-.text-gray-800 {
+.text-primary {
   color: var(--color-primary-text) !important;
 }
 
-.border-gray-200 {
+.border-color {
   border-color: var(--color-border) !important;
 }
 
-.bg-gray-50 {
+.hover-color{
   background-color: var(--color-hover) !important;
 }
 
-.hover\:bg-gray-100:hover {
-  background-color: var(--color-hover) !important;
-}
-
-.text-gray-600 {
+.text-secondary {
   color: var(--color-secondary-text) !important;
 }
 
-.text-gray-700 {
-  color: var(--color-primary-text) !important;
+.bg-secondary-base {
+  background-color: var(--color-secondary-base) !important;
 }
+
 
 button.primary {
   background-color: var(--color-primary-btn);
   color: var(--color-primary-text);
+  
+}
+
+button.primary:hover {
+  background-color: var(--color-hover);
+  color: var(--color-primary-text);
+  
 }
 
 button.secondary {
   background-color: var(--color-secondary-btn);
-  color: var(--color-secondary-text);
+  color: var(--color-primary-text);
 }
+
+button.secondary:hover {
+  background-color: var(--color-hover);
+  color: var(--color-primary-text);
+}
+
+.neon-text {
+  color: var(--color-secondary-base);
+  text-shadow: 0 0 5px var(--color-primary-btn), 
+               0 0 10px var(--color-primary-btn), 
+               0 0 15px var(--color-secondary-btn);
+  font-weight: bold;
+}
+

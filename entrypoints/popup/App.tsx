@@ -84,7 +84,7 @@ const AppContent = () => {
   const [newSnippetTitle, setNewSnippetTitle] = useState('');
   const [copiedSnippetId, setCopiedSnippetId] = useState<string | null>(null);
   const [snippetMode, setSnippetMode] = useState<'copy' | 'delete' | 'edit'>('copy');
-  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' as const });
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' as 'success' | 'error' }); // Allow 'error' type
   const [showAddFolder, setShowAddFolder] = useState(false); // State to toggle Add Folder section visibility
   const [showAddSnippet, setShowAddSnippet] = useState(false); // State to toggle Add Snippet section visibility
   const [searchQuery, setSearchQuery] = useState(''); // State for search functionality
@@ -484,36 +484,38 @@ const AppContent = () => {
 
   // Apply Tailwind classes to the main App structure
   return (
-    <div className="flex flex-col h-full w-full bg-white text-gray-800 text-sm">
+    <div className="flex flex-col h-full w-full bg-base text-primary text-sm">
       {/* Toast notification */}
-      <Toast 
+      <Toast
         message={toast.message}
         isVisible={toast.visible}
         type={toast.type}
         onClose={() => setToast(prev => ({ ...prev, visible: false }))}
       />
-      
-      <div className="flex items-center justify-between py-3 border-b border-gray-200 px-3">
-        <h1 className="text-xl font-semibold text-gray-700">Peti Rahsia</h1>
-        <div className="flex items-center gap-2">
+
+      <div className="flex items-center justify-between py-3 border-b border-color px-3">
+      <h1 className="neon-text text-2xl font-bold text-primary">
+        Peti Rahsia
+      </h1>      
+      <div className="flex items-center gap-2">
           <ThemeToggle />
-          <button 
+          <button
             onClick={() => setShowSettings(true)}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+            className="p-2 rounded-full hover:hover-color transition-colors duration-200"
             title="Settings"
           >
-            <FiSettings size={18} className="text-gray-600" />
+            <FiSettings size={18} className="text-primary" />
           </button>
         </div>
       </div>
       {authError && <p className="text-red-600 text-xs mt-2 text-center">{authError}</p>}
 
       {/* Main layout: Sidebar + Content */}
-      <div className="flex flex-grow overflow-hidden border-b border-gray-200 relative">
+      <div className="flex flex-grow overflow-hidden border-b border-color relative">
         {/* Sidebar toggle button when sidebar is hidden */}
         {!showSidebar && (
-          <button 
-            className="absolute top-2 left-0 z-10 p-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-r-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200"
+          <button
+            className="absolute top-2 left-0 z-10 p-1 bg-primary-base text-primary rounded-r-md hover:hover-color transition-all duration-200 cursor-pointer"
             onClick={() => setShowSidebar(true)}
             title="Show folders"
           >
@@ -524,13 +526,13 @@ const AppContent = () => {
         )}
         
         {/* Sidebar - Conditionally rendered with transition */}
-        <div 
-          className={`border-r border-gray-200 p-3 flex flex-col overflow-y-auto bg-gray-50 transition-all duration-300 ease-in-out relative ${showSidebar ? 'w-[160px]' : 'w-0 p-0 overflow-hidden'}`}
+        <div
+          className={`border-r border-color p-3 flex flex-col overflow-y-auto bg-secondary-base transition-all duration-300 ease-in-out relative ${showSidebar ? 'w-[160px]' : 'w-0 p-0 overflow-hidden'}`}
         >
             {/* Sidebar Toggle Button - Positioned at the right edge of sidebar */}
             {showSidebar && (
-              <button 
-                className="absolute top-2 right-0 z-10 p-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-l-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200"
+              <button
+                className="absolute top-2 right-0 z-10 p-1 bg-secondary text-primary hover:hover-color transition-all duration-200 cursor-pointer"
                 onClick={() => setShowSidebar(false)}
                 title="Hide folders"
               >
@@ -561,9 +563,9 @@ const AppContent = () => {
             
             {/* Add Folder Toggle Button - Only shown when sidebar is visible */}
             {showSidebar && (
-              <div className="mt-auto pt-3 border-t border-gray-200"> {/* Pushes form to bottom */}
+              <div className="mt-auto pt-3 border-t border-color"> {/* Pushes form to bottom */}
                   <button
-                      className="w-full py-1.5 px-3 mb-1.5 border-none rounded bg-blue-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-blue-700 flex items-center justify-center"
+                      className="w-full py-1.5 px-3 mb-1.5 border-none rounded primary text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:hover-color flex items-center justify-center" // Keep specific button colors for now
                       onClick={() => setShowAddFolder(!showAddFolder)}
                   >
                       <FiPlus className="mr-1" size={14} />
@@ -575,13 +577,13 @@ const AppContent = () => {
                       <div className="mt-1">
                           <input
                               type="text"
-                              className="w-full p-1.5 border border-gray-300 rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              className="w-full p-1.5 border border-color rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-base text-primary" // Apply theme to input
                               value={newFolderName}
                               onChange={(e) => setNewFolderName(e.target.value)}
                               placeholder="New folder name"
                           />
                           <button
-                              className="w-full py-1.5 px-3 border-none rounded bg-blue-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                              className="w-full py-1.5 px-3 border-none rounded bg-blue-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed" // Keep specific button colors
                               onClick={() => {
                                   handleAddFolder(newFolderName);
                                   setShowAddFolder(false); // Hide form after adding
@@ -605,22 +607,22 @@ const AppContent = () => {
                         {/* Search input */}
                         <div className="relative flex-grow mr-2">
                             <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                                <FiSearch className="text-gray-400" size={14} />
+                                <FiSearch className="text-primary" size={14} />
                             </div>
                             <input
                                 type="text"
-                                className="w-full py-1 pl-8 pr-2 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                className="w-full py-1 pl-8 pr-2 text-xs border border-color rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-base text-primary" // Apply theme to input
                                 placeholder="Search snippets..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
-                        
+
                         {/* Mode toggle button */}
                         <button
-                            className={`p-1.5 rounded transition-colors duration-200 ease-in-out ${
+                            className={`p-1.5 rounded transition-colors duration-200 ease-in-out cursor-pointer ${
                                 snippetMode === 'copy' 
-                                    ? 'bg-blue-600 text-white' 
+                                    ? 'bg-green-600 text-white' 
                                     : snippetMode === 'delete' 
                                         ? 'bg-red-600 text-white' 
                                         : 'bg-yellow-500 text-white'
@@ -635,6 +637,7 @@ const AppContent = () => {
                             }}
                             title={`Mode: ${snippetMode.charAt(0).toUpperCase() + snippetMode.slice(1)}`}
                         >
+                            mode:
                             {snippetMode === 'copy' && <FiCopy size={14} />}
                             {snippetMode === 'delete' && <FiTrash2 size={14} />}
                             {snippetMode === 'edit' && <FiEdit size={14} />}
@@ -651,9 +654,9 @@ const AppContent = () => {
                         mode={snippetMode} // Pass current mode
                     />
                      {/* Add Snippet Toggle Button */}
-                    <div className="mt-auto pt-3 border-t border-gray-200"> {/* Pushes form to bottom */}
+                    <div className="mt-auto pt-3 border-t border-color"> {/* Pushes form to bottom */}
                         <button
-                            className="w-full py-1.5 px-3 mb-1.5 border-none rounded bg-green-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-green-700 flex items-center justify-center"
+                            className="w-full py-1.5 px-3 mb-1.5 border-none rounded secondary text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-green-700 flex items-center justify-center" // Keep specific button colors
                             onClick={() => setShowAddSnippet(!showAddSnippet)}
                         >
                             <FiPlus className="mr-1" size={14} />
@@ -665,19 +668,19 @@ const AppContent = () => {
                             <div className="mt-1">
                                 <input
                                     type="text"
-                                    className="w-full p-1.5 border border-gray-300 rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full p-1.5 border border-color rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-base text-primary" // Apply theme to input
                                     value={newSnippetTitle}
                                     onChange={(e) => setNewSnippetTitle(e.target.value)}
                                     placeholder="Snippet title (optional)"
                                 />
                                 <textarea
-                                    className="w-full p-1.5 border border-gray-300 rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[60px]"
+                                    className="w-full p-1.5 border border-color rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[60px] bg-base text-primary" // Apply theme to textarea
                                     value={newSnippetText}
                                     onChange={(e) => setNewSnippetText(e.target.value)}
                                     placeholder="Snippet text (required)"
                                 />
                                 <button
-                                    className="w-full py-1.5 px-3 border-none rounded bg-green-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                    className="w-full py-1.5 px-3 border-none rounded bg-green-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed" // Keep specific button colors
                                     onClick={() => {
                                         handleAddSnippet(selectedFolderId, newSnippetText, newSnippetTitle);
                                         setShowAddSnippet(false); // Hide form after adding
@@ -691,7 +694,7 @@ const AppContent = () => {
                     </div>
                 </div>
             ) : (
-                <p className="text-center text-gray-500 mt-6 text-xs">Select a folder to view snippets.</p>
+                <p className="text-center text-primary mt-6 text-xs">Select a folder to view snippets.</p>
             )}
         </div>
       </div>
