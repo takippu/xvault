@@ -24,9 +24,11 @@
   --color-secondary-text: #ffb700;
   --color-hovers-text: #f40480;
   --color-border: #94969b39;
-  --color-hover: #0564e1;
+  --color-hover: #f40480;
   --color-neon-text: #ff70a6;
   --color-neon-glow: #fbfbfb;
+  --color-folders: #ff679e;
+  --color-folders-hover: #ffafcc;
 }
 
 :root.dark {
@@ -52,6 +54,8 @@
   --color-hover: #0564e1;
   --color-neon-text: #d6d6d6;
   --color-neon-glow: #cd17ff;
+  --color-folders: #305e93;
+  --color-folders-hover: #404d64;
 }
 
 /* Maintain popup dimensions */
@@ -80,6 +84,12 @@ body {
   color: var(--color-hovers-text) !important;
 }
 
+.folders {
+  background-color: var(--color-folders) !important;
+}
+.folders:hover {
+  background-color: var(--color-folders-hover) !important;
+}
 .border-color {
   border-color: var(--color-border) !important;
 }

@@ -116,23 +116,23 @@ const Settings: React.FC<SettingsProps> = ({
   }, [currentPassword, onRemovePassword]);
 
   return (
-    <div className="flex flex-col h-full w-full bg-white text-gray-800 text-sm">
+    <div className="flex flex-col h-full w-full bg-base text-primary text-sm">
       {/* Header with back button */}
-      <div className="flex items-center py-3 border-b border-gray-200 px-3">
+      <div className="flex items-center py-3 border-b border-color px-3">
         <button
           onClick={onBack}
-          className="mr-2 p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"
+          className="mr-2 p-1 rounded-full hover:bg-secondary-base transition-colors duration-200"
           aria-label="Back"
         >
           <FiArrowLeft size={18} />
         </button>
-        <h1 className="text-xl font-semibold text-gray-700 flex-grow text-center pr-6">Settings</h1>
+        <h1 className="text-xl font-semibold text-primary flex-grow text-center pr-6">Settings</h1>
       </div>
 
       {/* Main content */}
       <div className="flex-grow p-4 overflow-y-auto">
         <div className="max-w-md mx-auto">
-          <h2 className="text-lg font-medium mb-4">
+          <h2 className="text-lg font-medium mb-4 text-primary">
             {isSettingNewPassword ? 'Set Password' : 'Change Password'}
           </h2>
 
@@ -140,7 +140,7 @@ const Settings: React.FC<SettingsProps> = ({
             {/* Current password field - only shown when changing password */}
             {!isSettingNewPassword && (
               <div>
-                <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="currentPassword" className="block text-sm font-medium text-primary mb-1">
                   Current Password
                 </label>
                 <input
@@ -148,14 +148,14 @@ const Settings: React.FC<SettingsProps> = ({
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-2 border border-color rounded bg-secondary-base text-primary focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-btn)] focus:border-[var(--color-primary-btn)]"
                 />
               </div>
             )}
 
             {/* New password field */}
             <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="newPassword" className="block text-sm font-medium text-primary mb-1">
                 New Password
               </label>
               <input
@@ -163,13 +163,13 @@ const Settings: React.FC<SettingsProps> = ({
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 border border-color rounded bg-secondary-base text-primary focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-btn)] focus:border-[var(--color-primary-btn)]"
               />
             </div>
 
             {/* Confirm password field */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-primary mb-1">
                 Confirm New Password
               </label>
               <input
@@ -177,14 +177,14 @@ const Settings: React.FC<SettingsProps> = ({
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 border border-color rounded bg-secondary-base text-primary focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-btn)] focus:border-[var(--color-primary-btn)]"
               />
             </div>
 
             {/* Submit button */}
             <button
               type="submit"
-              className="w-full py-2 px-4 border-none rounded bg-blue-600 text-white cursor-pointer transition-colors duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              className="primary w-full py-2 px-4 border-none rounded cursor-pointer transition-colors duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSettingNewPassword ? 'Set Password' : 'Change Password'}
             </button>
@@ -192,8 +192,8 @@ const Settings: React.FC<SettingsProps> = ({
           
           {/* Remove Password section - only shown when password is set */}
           {!isSettingNewPassword && onRemovePassword && (
-            <div className="mt-8 border-t pt-6 border-gray-200">
-              <h3 className="text-md font-medium mb-4 flex items-center">
+            <div className="mt-8 border-t pt-6 border-color">
+              <h3 className="text-md font-medium mb-4 flex items-center text-primary">
                 <FiUnlock className="mr-2" />
                 Remove Password Protection
               </h3>
@@ -201,17 +201,17 @@ const Settings: React.FC<SettingsProps> = ({
               {!showRemoveConfirm ? (
                 <button
                   onClick={() => setShowRemoveConfirm(true)}
-                  className="w-full py-2 px-4 border border-red-300 rounded bg-white text-red-600 cursor-pointer transition-colors duration-200 ease-in-out hover:bg-red-50"
+                  className="w-full py-2 px-4 border border-red-500 rounded bg-base text-red-500 cursor-pointer transition-colors duration-200 ease-in-out hover:bg-red-100 dark:hover:bg-red-900/50"
                 >
                   Remove Password
                 </button>
               ) : (
                 <div className="space-y-4">
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-secondary">
                     Enter your current password to remove password protection. This will allow anyone to access your snippets without authentication.
                   </p>
                   <div>
-                    <label htmlFor="removePasswordCurrent" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="removePasswordCurrent" className="block text-sm font-medium text-primary mb-1">
                       Current Password
                     </label>
                     <input
@@ -219,13 +219,13 @@ const Settings: React.FC<SettingsProps> = ({
                       type="password"
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full p-2 border border-color rounded bg-secondary-base text-primary focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-btn)] focus:border-[var(--color-primary-btn)]"
                     />
                   </div>
                   <div className="flex space-x-2">
                     <button
                       onClick={handleRemovePassword}
-                      className="flex-1 py-2 px-4 border-none rounded bg-red-600 text-white cursor-pointer transition-colors duration-200 ease-in-out hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      className="flex-1 py-2 px-4 border-none rounded bg-red-600 text-white cursor-pointer transition-colors duration-200 ease-in-out hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Confirm Removal
                     </button>
@@ -235,7 +235,7 @@ const Settings: React.FC<SettingsProps> = ({
                         setCurrentPassword('');
                         setError(null);
                       }}
-                      className="flex-1 py-2 px-4 border border-gray-300 rounded bg-white text-gray-700 cursor-pointer transition-colors duration-200 ease-in-out hover:bg-gray-100"
+                      className="secondary flex-1 py-2 px-4 border border-color rounded cursor-pointer transition-colors duration-200 ease-in-out"
                     >
                       Cancel
                     </button>
@@ -247,21 +247,21 @@ const Settings: React.FC<SettingsProps> = ({
 
           {/* Error messages */}
           {(error || authError) && (
-            <p className="text-red-600 text-sm mt-3">{error || authError}</p>
+            <p className="text-red-500 text-sm mt-3">{error || authError}</p>
           )}
 
           {/* Success message */}
           {success && (
-            <p className="text-green-600 text-sm mt-3">{success}</p>
+            <p className="text-green-500 text-sm mt-3">{success}</p>
           )}
           
           {/* Import/Export Section */}
-          <div className="mt-8 border-t pt-6 border-gray-200">
-            <h2 className="text-lg font-medium mb-4">Import/Export Data</h2>
+          <div className="mt-8 border-t pt-6 border-color">
+            <h2 className="text-lg font-medium mb-4 text-primary">Import/Export Data</h2>
             
             {/* Export Section */}
             <div className="mb-6">
-              <h3 className="text-md font-medium mb-3 flex items-center">
+              <h3 className="text-md font-medium mb-3 flex items-center text-primary">
                 <FiDownload className="mr-2" />
                 Export Data
               </h3>
@@ -273,16 +273,16 @@ const Settings: React.FC<SettingsProps> = ({
                     type="checkbox"
                     checked={exportEncrypt}
                     onChange={(e) => setExportEncrypt(e.target.checked)}
-                    className="mr-2 h-4 w-4"
+                    className="mr-2 h-4 w-4 accent-[var(--color-primary-btn)]" // Style checkbox
                   />
-                  <label htmlFor="exportEncrypt" className="text-sm text-gray-700">
+                  <label htmlFor="exportEncrypt" className="text-sm text-primary">
                     Encrypt exported data
                   </label>
                 </div>
                 
                 {exportEncrypt && (
                   <div>
-                    <label htmlFor="exportPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="exportPassword" className="block text-sm font-medium text-primary mb-1">
                       Export Password
                     </label>
                     <input
@@ -290,7 +290,7 @@ const Settings: React.FC<SettingsProps> = ({
                       type="password"
                       value={exportPassword}
                       onChange={(e) => setExportPassword(e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full p-2 border border-color rounded bg-secondary-base text-primary focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-btn)] focus:border-[var(--color-primary-btn)]"
                       placeholder="Enter password for encryption"
                     />
                   </div>
@@ -329,7 +329,7 @@ const Settings: React.FC<SettingsProps> = ({
                         });
                       }
                     }}
-                    className="flex-1 py-2 px-4 border-none rounded bg-blue-600 text-white cursor-pointer transition-colors duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    className="primary flex-1 py-2 px-4 border-none rounded cursor-pointer transition-colors duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Copy to Clipboard
                   </button>
@@ -375,7 +375,7 @@ const Settings: React.FC<SettingsProps> = ({
                         });
                       }
                     }}
-                    className="flex-1 py-2 px-4 border-none rounded bg-blue-600 text-white cursor-pointer transition-colors duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    className="primary flex-1 py-2 px-4 border-none rounded cursor-pointer transition-colors duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Save as File
                   </button>
@@ -383,13 +383,13 @@ const Settings: React.FC<SettingsProps> = ({
                 
                 {exportResult && (
                   <div className="mt-3">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-primary mb-1">
                       Exported Data
                     </label>
                     <textarea
                       readOnly
                       value={exportResult}
-                      className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 h-32 font-mono text-xs"
+                      className="w-full p-2 border border-color rounded bg-secondary-base text-primary focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-btn)] focus:border-[var(--color-primary-btn)] h-32 font-mono text-xs"
                       onClick={(e) => {
                         (e.target as HTMLTextAreaElement).select();
                         navigator.clipboard.writeText(exportResult);
@@ -400,7 +400,7 @@ const Settings: React.FC<SettingsProps> = ({
                         });
                       }}
                     />
-                    <p className="text-xs text-gray-500 mt-1">Click in the box to copy to clipboard</p>
+                    <p className="text-xs text-secondary mt-1">Click in the box to copy to clipboard</p>
                   </div>
                 )}
               </div>
@@ -408,27 +408,27 @@ const Settings: React.FC<SettingsProps> = ({
             
             {/* Import Section */}
             <div>
-              <h3 className="text-md font-medium mb-3 flex items-center">
+              <h3 className="text-md font-medium mb-3 flex items-center text-primary">
                 <FiUpload className="mr-2" />
                 Import Data
               </h3>
               
               <div className="space-y-3">
                 <div>
-                  <label htmlFor="importData" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="importData" className="block text-sm font-medium text-primary mb-1">
                     Paste exported data
                   </label>
                   <textarea
                     id="importData"
                     value={importData}
                     onChange={(e) => setImportData(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 h-32 font-mono text-xs"
+                    className="w-full p-2 border border-color rounded bg-secondary-base text-primary focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-btn)] focus:border-[var(--color-primary-btn)] h-32 font-mono text-xs"
                     placeholder="Paste exported data here"
                   />
                 </div>
                 
                 <div>
-                  <label htmlFor="importPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="importPassword" className="block text-sm font-medium text-primary mb-1">
                     Import Password (only needed for encrypted data)
                   </label>
                   <input
@@ -436,7 +436,7 @@ const Settings: React.FC<SettingsProps> = ({
                     type="password"
                     value={importPassword}
                     onChange={(e) => setImportPassword(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-2 border border-color rounded bg-secondary-base text-primary focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-btn)] focus:border-[var(--color-primary-btn)]"
                     placeholder="Enter password (if data is encrypted)"
                   />
                 </div>
@@ -479,13 +479,13 @@ const Settings: React.FC<SettingsProps> = ({
                         });
                       }
                     }}
-                    className="w-full py-2 px-4 border-none rounded bg-blue-600 text-white cursor-pointer transition-colors duration-200 ease-in-out hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    className="primary w-full py-2 px-4 border-none rounded cursor-pointer transition-colors duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Import
                   </button>
                   
                   <div className="text-center">
-                    <span className="text-sm text-gray-500">or</span>
+                    <span className="text-sm text-primary">or</span>
                   </div>
                   
                   <input
@@ -517,7 +517,7 @@ const Settings: React.FC<SettingsProps> = ({
                   
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full py-2 px-4 border border-blue-300 rounded bg-white text-blue-600 cursor-pointer transition-colors duration-200 ease-in-out hover:bg-blue-50"
+                    className="secondary w-full py-2 px-4 border border-color rounded cursor-pointer transition-colors duration-200 ease-in-out"
                   >
                     Select File
                   </button>

@@ -36,7 +36,7 @@ const FolderList: React.FC<FolderListProps> = ({
                 flex justify-between items-center p-1.5 rounded cursor-pointer
                 transition-colors duration-150 ease-in-out text-xs
                 ${folder.id === selectedFolderId
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  ? 'folders text-primary hover:hover-color'
                   : 'text-gray-700 hover:bg-gray-200'
                 }
               `}
@@ -53,7 +53,7 @@ const FolderList: React.FC<FolderListProps> = ({
               {/* Snippet count, adjust color when selected */}
               <span className={`
                 whitespace-nowrap text-xs
-                ${folder.id === selectedFolderId ? 'text-blue-200' : 'text-gray-500'}
+                ${folder.id === selectedFolderId ? 'text-primary' : 'text-secondary'}
               `}>
                 ({folder.snippets.length})
               </span>

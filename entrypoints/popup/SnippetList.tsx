@@ -45,13 +45,13 @@ const SnippetList: React.FC<SnippetListProps> = ({
                     {/* Apply theme classes to inputs */}
                     <input
                       type="text"
-                      className="w-full p-1 border border-color rounded text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-base text-primary"
+                      className="w-full p-1 border border-color rounded text-xs font-mono focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-btn)] focus:border-[var(--color-primary-btn)] bg-base text-primary"
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
                       placeholder="Title (optional)"
                     />
                     <textarea
-                      className="w-full p-1 border border-color rounded text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[60px] bg-base text-primary"
+                      className="w-full p-1 border border-color rounded text-xs font-mono focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-btn)] focus:border-[var(--color-primary-btn)] min-h-[60px] bg-base text-primary"
                       value={editText}
                       onChange={(e) => setEditText(e.target.value)}
                       placeholder="Snippet text (required)"
