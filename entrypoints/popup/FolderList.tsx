@@ -37,14 +37,11 @@ const FolderList: React.FC<FolderListProps> = ({
                 transition-colors duration-150 ease-in-out text-xs
                 ${folder.id === selectedFolderId
                   ? 'folders text-primary hover:hover-color'
-                  : 'text-gray-700 hover:bg-gray-200'
+                  : 'text-primary hover:hover-color'
                 }
               `}
-              onClick={(e) => {
-                if (e.target === e.currentTarget || e.target instanceof HTMLSpanElement) {
-                  onSelectFolder(folder.id);
-                }
-              }}
+              // Call onSelectFolder directly when the list item is clicked
+              onClick={() => onSelectFolder(folder.id)}
             >
               {/* Folder name */}
               <div className="flex items-center flex-grow">
@@ -53,7 +50,7 @@ const FolderList: React.FC<FolderListProps> = ({
               {/* Snippet count, adjust color when selected */}
               <span className={`
                 whitespace-nowrap text-xs
-                ${folder.id === selectedFolderId ? 'text-primary' : 'text-secondary'}
+                ${folder.id === selectedFolderId ? 'text-primary' : 'text-primary'}
               `}>
                 ({folder.snippets.length})
               </span>
