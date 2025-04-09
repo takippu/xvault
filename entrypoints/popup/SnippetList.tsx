@@ -57,9 +57,9 @@ const SnippetList: React.FC<SnippetListProps> = ({
                     />
                   </div>
                 ) : (
-                  <pre className="m-0 font-mono group relative transition-colors duration-200 ease-in-out hover:bg-blue-100 p-1 rounded">
-                    {/* Show title by default, but on hover show the full text */}
-                    <span className="group-hover:hidden">{snippet.title || snippet.text}</span>
+                  <pre className="m-0 font-mono group relative transition-colors duration-200 ease-in-out hover:bg-blue-100 dark:hover:bg-blue-800 p-1 rounded">
+                    {/* Show title by default, show full text on hover */}
+                    <span className="block group-hover:hidden">{snippet.title || snippet.text}</span>
                     {snippet.title && (
                       <>
                         <span className="hidden group-hover:inline">{snippet.text}</span>

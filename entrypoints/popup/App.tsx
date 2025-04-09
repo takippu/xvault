@@ -5,7 +5,7 @@ import FolderList from './FolderList';
 import SnippetList from './SnippetList';
 import Toast from './Toast';
 import Settings from './Settings';
-import { FiPlus, FiSearch, FiSettings } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiSettings, FiCopy, FiEdit, FiTrash2 } from 'react-icons/fi';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ThemeToggle from './components/ThemeToggle';
 
@@ -513,7 +513,7 @@ const AppContent = () => {
         {/* Sidebar toggle button when sidebar is hidden */}
         {!showSidebar && (
           <button 
-            className="absolute top-2 left-0 z-10 p-1 bg-gray-200 text-gray-700 rounded-r-md hover:bg-gray-300 transition-all duration-200"
+            className="absolute top-2 left-0 z-10 p-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-r-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200"
             onClick={() => setShowSidebar(true)}
             title="Show folders"
           >
@@ -530,7 +530,7 @@ const AppContent = () => {
             {/* Sidebar Toggle Button - Positioned at the right edge of sidebar */}
             {showSidebar && (
               <button 
-                className="absolute top-2 right-0 z-10 p-1 bg-gray-200 text-gray-700 rounded-l-md hover:bg-gray-300 transition-all duration-200"
+                className="absolute top-2 right-0 z-10 p-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-l-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200"
                 onClick={() => setShowSidebar(false)}
                 title="Hide folders"
               >
@@ -618,7 +618,7 @@ const AppContent = () => {
                         
                         {/* Mode toggle button */}
                         <button
-                            className={`py-1 px-2 text-xs rounded transition-colors duration-200 ease-in-out ${
+                            className={`p-1.5 rounded transition-colors duration-200 ease-in-out ${
                                 snippetMode === 'copy' 
                                     ? 'bg-blue-600 text-white' 
                                     : snippetMode === 'delete' 
@@ -633,8 +633,11 @@ const AppContent = () => {
                                     return 'copy';
                                 });
                             }}
+                            title={`Mode: ${snippetMode.charAt(0).toUpperCase() + snippetMode.slice(1)}`}
                         >
-                            Mode: {snippetMode.charAt(0).toUpperCase() + snippetMode.slice(1)}
+                            {snippetMode === 'copy' && <FiCopy size={14} />}
+                            {snippetMode === 'delete' && <FiTrash2 size={14} />}
+                            {snippetMode === 'edit' && <FiEdit size={14} />}
                         </button>
                     </div>
                     
