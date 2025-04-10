@@ -3,9 +3,9 @@ import { FiGlobe, FiGithub, FiLinkedin } from 'react-icons/fi';
 
 const About: React.FC = () => {
   const socialLinks = [
-    { name: 'Website', url: '#', icon: <FiGlobe size={18} /> },
-    { name: 'GitHub', url: '#', icon: <FiGithub size={18} /> },
-    { name: 'LinkedIn', url: '#', icon: <FiLinkedin size={18} /> },
+    { name: 'Website', url: 'https://thaqifrosdi.my', icon: <FiGlobe size={18} /> },
+    { name: 'GitHub', url: 'https://github.com/takippu', icon: <FiGithub size={18} /> },
+    { name: 'LinkedIn', url: 'https://linkedin.com/in/thaqifrosdi', icon: <FiLinkedin size={18} /> },
   ];
 
   return (
@@ -56,7 +56,7 @@ const About: React.FC = () => {
           <div>
             <h2 className="text-lg font-semibold mb-3">Developer</h2>
             <div className="mb-3">
-              <p className="text-sm">[Developer Name]</p>
+              <p className="text-sm">Thaqif Rosdi</p>
               <p className="text-xs text-secondary">Full Stack Developer</p>
             </div>
           </div>

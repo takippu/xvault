@@ -35,10 +35,19 @@ const SnippetList: React.FC<SnippetListProps> = ({
         <ul className="space-y-2">
           {snippets.map((snippet) => (
             // Conditionally add 'group' class only if snippet has a title
-            <li key={snippet.id} className={`${snippet.title ? 'group' : ''} flex justify-between items-start p-2 border border-color rounded bg-base`}>
-              {/* Snippet text area - Apply theme classes */}
+            // Add onClick for row copy and conditional cursor
+            <li 
+              key={snippet.id} 
+              className={`${snippet.title ? 'group' : ''} flex justify-between items-start p-2 border border-color rounded bg-base ${mode === 'copy' ? 'cursor-pointer hover:bg-hover' : ''} transition-colors duration-150 ease-in-out`}
+              onClick={() => {
+                if (mode === 'copy' && copiedSnippetId !== snippet.id) { // Prevent re-copying immediately
+                  onCopySnippet(snippet);
+                }
+              }}
+            >
+              {/* Snippet text area - Apply theme classes, add min-w-0 */}
               <div
-                className="text-xs text-primary whitespace-pre-wrap break-all mr-3 flex-grow bg-secondary-base p-1.5 rounded font-mono relative cursor-default"
+                className="text-xs text-primary whitespace-pre-wrap break-all mr-3 flex-grow bg-secondary-base p-1.5 rounded font-mono relative cursor-default min-w-0" // Added min-w-0
               >
                 {editingSnippetId === snippet.id ? (
                   <div className="space-y-1">
@@ -65,11 +74,11 @@ const SnippetList: React.FC<SnippetListProps> = ({
                     {/* Only show hidden text and apply hover effect if title exists */}
                     {snippet.title && (
                       <>
-                        {/* Apply hover background only to the hidden text span */}
-                        <span className="hidden group-hover:inline text-hovers font-black  p-1 rounded">{snippet.text}</span>
+                        {/* Apply hover background, make it block, hide overflow, and add ellipsis */}
+                        <span className="hidden group-hover:block text-hovers font-black p-1 rounded overflow-hidden text-ellipsis whitespace-nowrap">{snippet.text}</span>
                         {/* Hide label on hover */}
                         <span className="absolute top-0 right-0 text-[10px] text-primary bg-secondary-base px-1 rounded-bl group-hover:hidden">
-                          Hover to see content
+                          Hover me 👈
                         </span>
                       </>
                     )}
@@ -87,7 +96,12 @@ const SnippetList: React.FC<SnippetListProps> = ({
                         : 'bg-green-600 hover:bg-green-700' // Normal state
                       }
                     `}
-                    onClick={() => onCopySnippet(snippet)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent li onClick from firing
+                      if (copiedSnippetId !== snippet.id) {
+                        onCopySnippet(snippet);
+                      }
+                    }}
                     title="Copy snippet"
                     disabled={copiedSnippetId === snippet.id}
                   >
