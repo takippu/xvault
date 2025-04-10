@@ -525,11 +525,20 @@ const AppContent = () => {
         onClose={() => setToast(prev => ({ ...prev, visible: false }))}
       />
 
-      <div className="flex items-center justify-between py-3 border-b border-color px-3">
-      <h1 className="neon-text text-2xl font-bold ">
-        Peti Rahsia
-      </h1>      
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between py-3 border-b border-color px-3 relative">
+        <div className="container" style={{height: '40px'}}>
+          <div className="title">
+            <h1 style={{fontSize: '1rem'}}>xVault</h1>
+          </div>
+          <div className="ghost">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 z-10">
           <ThemeToggle />
           <button
             onClick={() => setShowAbout(true)}
