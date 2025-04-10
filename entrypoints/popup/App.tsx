@@ -9,6 +9,7 @@ import { FiPlus, FiSearch, FiSettings, FiCopy, FiEdit, FiTrash2, FiInfo, FiLock 
 import { ThemeProvider } from './contexts/ThemeContext';
 import ThemeToggle from './components/ThemeToggle';
 import About from './components/About';
+import oiaGif from '../../assets/oia-uia.gif';
 
 // --- Crypto Utilities ---
 
@@ -530,12 +531,8 @@ const AppContent = () => {
           <div className="title">
             <h1 style={{fontSize: '1rem'}}>xVault</h1>
           </div>
-          <div className="ghost">
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
+          <div className="gif-container">
+            <img src={oiaGif} alt="oia-oia" className="ghost-gif" />
           </div>
         </div>
         <div className="flex items-center gap-2 z-10">

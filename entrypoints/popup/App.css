@@ -30,6 +30,8 @@
   --color-neon-glow: #fbfbfb;
   --color-folders: #ff679e;
   --color-folders-hover: #ffafcc;
+
+  --oiia-gif-mode: multiply;
 }
 
 :root.dark {
@@ -57,6 +59,7 @@
   --color-neon-glow: #cd17ff;
   --color-folders: #305e93;
   --color-folders-hover: #404d64;
+  --oiia-gif-mode: exclusion;
 }
 
 /* Maintain popup dimensions */
@@ -226,4 +229,25 @@ button.secondary:hover {
   bottom: -2.9vmin;
   border-radius: 100% / 0% 0% 70% 70%;
   background-color: var(--color-base);
+}
+
+.gif-container {
+  position: relative;
+}
+
+.ghost-gif {
+  height: 12vmin; /* Adjust size as needed */
+  animation: ghostMove1 4s ease-out infinite;
+  mix-blend-mode: var(--oiia-gif-mode); /* Keeping the mix-blend-mode from original */
+  opacity: 0.8;
+  will-change: transform;
+}
+
+@keyframes ghostMove1 {
+  0% {
+    transform: translateX(30em);
+  }
+  100% {
+    transform: translateX(-35em);
+  }
 }
