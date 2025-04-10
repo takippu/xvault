@@ -55,20 +55,51 @@ export const importData = async (
 ): Promise<AppData> => {
   try {
     let jsonData: string;
+    let isEncrypted = false;
     
-    // Try to parse as JSON first (unencrypted data)
+    // First, check if the data appears to be encrypted (not valid JSON)
     try {
-      // Check if the string is valid JSON
       JSON.parse(importString);
-      jsonData = importString;
+      // If we can parse it as JSON, it might be unencrypted
+      isEncrypted = false;
     } catch (e) {
-      // If not valid JSON, assume it's encrypted
+      // If not valid JSON, it's likely encrypted
+      isEncrypted = true;
+    }
+    
+    // If the data contains passwordInfo, it should require a password to import
+    // even if it's in JSON format (to prevent password protection bypass)
+    if (!isEncrypted) {
+      try {
+        const tempData = JSON.parse(importString);
+        if (tempData.passwordInfo) {
+          // If the JSON data contains password info, require password verification
+          if (!password) {
+            throw new Error('Password is required to import password-protected data');
+          }
+          isEncrypted = true; // Treat it as encrypted to force password verification
+        } else {
+          // Unencrypted data without password info can be imported directly
+          jsonData = importString;
+        }
+      } catch (e) {
+        // If there's an error parsing the JSON again, something is wrong
+        throw new Error('Invalid data format');
+      }
+    }
+    
+    // Handle encrypted data
+    if (isEncrypted) {
       if (!password) {
         throw new Error('Password is required to import encrypted data');
       }
       
       // Try to decrypt the data
-      jsonData = await decryptData(importString, password);
+      try {
+        jsonData = await decryptData(importString, password);
+      } catch (e) {
+        throw new Error('Invalid password or corrupted data');
+      }
     }
     
     // Parse the JSON data
@@ -82,6 +113,6 @@ export const importData = async (
     return parsedData;
   } catch (error) {
     console.error('Import error:', error);
-    throw new Error('Failed to import data');
+    throw new Error(error instanceof Error ? error.message : 'Failed to import data');
   }
 };

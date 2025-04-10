@@ -16,12 +16,12 @@
   --color-hover: #fcfcf8; */
 
   /* new styling */
-  --color-base: #fff6f9;
-  --color-secondary-base: #fff2f2;
-  --color-primary-btn: #ff679e;
+  --color-base: #ffffff;
+  --color-secondary-base: #ffffff;
+  --color-primary-btn: #ff6380;
   --color-secondary-btn: #ffafcc;
   --color-primary-text: #000000;
-  --color-secondary-text: #ff5100;
+  --color-secondary-text: #f8f7f6;
   --color-hovers-text: #f40480;
   --color-border: #94969b39;
   --color-hover: #f40480;
@@ -129,12 +129,43 @@ button.secondary:hover {
   color: var(--color-primary-text);
 }
 
-.neon-text {
+/* .neon-text {
   color: var(--color-neon-text);
   text-shadow: 0 0 5px var(--color-neon-text), 
                0 0 10px var(--color-neon-text), 
                0 0 15px var(--color-neon-glow);
   font-weight: bold;
   
+} */
+
+.neon-text {
+  color: var(--color-neon-text);
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  font-size: 2.5rem; /* Increased font size for impact */
+  position: relative;
+
+  transition: transform 0.2s ease, letter-spacing 0.2s ease; /* Added transitions */
 }
 
+.neon-text::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20%; /* Center the underline */
+  width: 80px; /* Slightly longer underline */
+  height: 3px; /* Thicker underline */
+  background: linear-gradient(90deg, #80ed99, #4895ef); /* Brighter gradient */
+  transform: translateX(-50%); /* Precise centering */
+  transition: width 0.3s ease; /* Underline width transition */
+}
+
+.neon-text:hover {
+  transform: translateY(-4px); /* Slight upward movement on hover */
+  letter-spacing: 0.8px; /* Increased letter spacing on hover */
+}
+
+.neon-text:hover::after {
+  width: 120px; /* Underline expands on hover */
+}
