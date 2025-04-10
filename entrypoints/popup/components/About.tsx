@@ -1,5 +1,6 @@
 import React from 'react';
 import { FiGlobe, FiGithub, FiLinkedin } from 'react-icons/fi';
+import oiaGif from '../../../assets/oia-uia.gif';
 
 const About: React.FC = () => {
   const socialLinks = [
@@ -56,8 +57,9 @@ const About: React.FC = () => {
           <div>
             <h2 className="text-lg font-semibold mb-3">Developer</h2>
             <div className="mb-3">
-              <p className="text-sm">Thaqif Rosdi</p>
-              <p className="text-xs text-secondary">Full Stack Developer</p>
+              <p className="text-sm font-bold ">Thaqif Rosdi</p>
+              <p className="text-xs text-yellow-600">Full Stack Developer</p>
+              <img src={oiaGif} alt="OIA GIF" className="w-12 h-12 rounded-full mt-5" />
             </div>
           </div>
 
