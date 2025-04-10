@@ -102,9 +102,10 @@ const AppContent = () => {
       return;
     }
     console.log("Locking extension: Clearing session authentication and closing popup.");
-    sessionStorage.removeItem('authenticated');
-    setIsAuthenticated(false); // Trigger re-authentication
-    window.close(); // Close the popup window
+    storage.removeItem('session:authenticated').then(() => {
+      setIsAuthenticated(false); // Trigger re-authentication
+      window.close(); // Close the popup window
+    });
   }, [passwordInfo]); // Dependency on passwordInfo
 
   const selectedFolder = useMemo(() => {
@@ -136,13 +137,13 @@ const AppContent = () => {
       console.log("Loaded data:", { passwordInfo: storedPasswordInfo, folders: storedFolders });
 
       // Check if we have a session-based authentication
-      const sessionAuth = sessionStorage.getItem('authenticated') === 'true';
+      const sessionAuth = await storage.getItem<boolean>('session:authenticated');
       console.log("Session authentication state:", sessionAuth);
 
       if (storedPasswordInfo?.hash && storedPasswordInfo?.salt) {
         setPasswordInfo(storedPasswordInfo);
         // If we have valid session authentication, skip password prompt
-        if (sessionAuth) {
+        if (sessionAuth === true) {
           console.log("Using session authentication");
           setIsAuthenticated(true);
         } else {
@@ -180,12 +181,12 @@ const AppContent = () => {
         
         if (isValid) {
           // Always clear previous session authentication first
-          sessionStorage.removeItem('authenticated');
+          await storage.removeItem('session:authenticated');
           
           if (rememberMe) {
-            // Store authentication state in session storage if remember me is checked
+            // Store authentication state in browser.storage.session if remember me is checked
             console.log("Setting session authentication to true");
-            sessionStorage.setItem('authenticated', 'true');
+            await storage.setItem('session:authenticated', true);
           } else {
             console.log("Remember me not checked, no session persistence");
           }
@@ -435,7 +436,7 @@ const AppContent = () => {
       
       // Clear session storage authentication
       console.log("Clearing session authentication on password removal");
-      sessionStorage.removeItem('authenticated');
+      await storage.removeItem('session:authenticated');
       
       setToast({
         visible: true,
