@@ -478,7 +478,7 @@ const Settings: React.FC<SettingsProps> = ({
                         const url = window.URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = `petirahsia-export${exportEncrypt ? '.txt' : '.json'}`;
+                        a.download = `xVault-export${exportEncrypt ? '.txt' : '.json'}`;
                         document.body.appendChild(a);
                         a.click();
                         window.URL.revokeObjectURL(url);

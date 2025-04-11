@@ -714,7 +714,7 @@ const AppContent = () => {
           {/* Lock Button */}
           <button
             onClick={handleLockExtension}
-            className={`p-2 rounded-full icon-hover-parent transition-colors duration-200  ${!passwordInfo ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+            className={`p-2 rounded-full transition-colors duration-200  ${!passwordInfo ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer icon-hover-parent'}`}
             title={passwordInfo ? "Lock Extension" : "Set a password to enable locking"}
             disabled={!passwordInfo} // Disable if no password is set
           >

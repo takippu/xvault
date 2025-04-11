@@ -4,7 +4,7 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   manifest: {
-    name: 'PetiRahsia',
+    name: 'xVault',
     description: 'A secure password-protected storage for your important text snippets and notes. Keep your sensitive information safe and easily accessible.',
     permissions: ['storage'],
     icons: {

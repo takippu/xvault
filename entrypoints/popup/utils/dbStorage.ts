@@ -7,7 +7,7 @@
 import { StoredPasswordInfo, Folder, TextSnippet } from '../App';
 
 // Database configuration
-const DB_NAME = 'petirahsia_db';
+const DB_NAME = 'xVault_db';
 const DB_VERSION = 1;
 const STORES = {
   settings: 'settings',
