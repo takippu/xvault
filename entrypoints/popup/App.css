@@ -69,7 +69,7 @@
 /* Maintain popup dimensions */
 html, body, #root {
   width: 450px;
-  height: 550px;
+  height: 580px;
   overflow: hidden;
 }
 

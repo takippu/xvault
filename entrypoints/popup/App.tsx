@@ -977,7 +977,7 @@ const AppContent = () => {
       </div>
 
       {/* Ad Banner Section */}
-      <AdBanner
+      {/* <AdBanner
         onUpgrade={() => {
           setToast({
             visible: true,
@@ -985,7 +985,7 @@ const AppContent = () => {
             type: 'success'
           });
         }}
-      />
+      /> */}
 
       <Modal
         isOpen={editModalOpen}

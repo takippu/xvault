@@ -48,6 +48,10 @@ const About: React.FC = () => {
             <span className="mr-2">⚡</span>
             <span>Fast and lightweight browser extension with session persistence</span>
           </li>
+          <li className="flex items-start">
+            <span className="mr-2">🌐</span>
+            <span>Seamless integration as a Google Extension for enhanced accessibility</span>
+          </li>
         </ul>
       </div>
 
