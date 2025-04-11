@@ -695,9 +695,10 @@ const AppContent = () => {
         </div>
         <div className="flex items-center gap-2 z-10">
           <ThemeToggle />
+          {/* About Button */}
           <button
             onClick={() => setShowAbout(true)}
-            className="p-2 rounded-full hover:hover-color transition-colors duration-200"
+            className="p-2 rounded-full icon-hover-parent transition-colors duration-200 cursor-pointer"
             title="About"
           >
             <FiInfo size={18} className="text-primary" />
@@ -705,7 +706,7 @@ const AppContent = () => {
           {/* Settings Button */}
           <button
             onClick={() => setShowSettings(true)}
-            className="p-2 rounded-full hover:hover-color transition-colors duration-200"
+            className="p-2 rounded-full icon-hover-parent transition-colors duration-200 cursor-pointer"
             title="Settings"
           >
             <FiSettings size={18} className="text-primary" />
@@ -713,7 +714,7 @@ const AppContent = () => {
           {/* Lock Button */}
           <button
             onClick={handleLockExtension}
-            className={`p-2 rounded-full hover:hover-color transition-colors duration-200 ${!passwordInfo ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`p-2 rounded-full icon-hover-parent transition-colors duration-200  ${!passwordInfo ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             title={passwordInfo ? "Lock Extension" : "Set a password to enable locking"}
             disabled={!passwordInfo} // Disable if no password is set
           >

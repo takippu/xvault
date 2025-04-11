@@ -23,6 +23,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, authError }) => {
   // Apply Tailwind classes for styling
   return (
     <div className="flex flex-col items-center justify-center h-full p-6 bg-base text-sm">
+      <h2 className="titleTxt font-semibold mb-6 ">xVault</h2>
       <h2 className="text-lg font-semibold mb-6 neon-text">Enter Password</h2>
       {/* Using a form for better semantics */}
       <form onSubmit={handleSubmit} className="w-full max-w-xs">

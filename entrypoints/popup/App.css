@@ -102,8 +102,9 @@ body {
   border-color: var(--color-border) !important;
 }
 
-.hover-color{
-  background-color: var(--color-hover) !important;
+/* Change icon color on parent hover */
+.icon-hover-parent:hover svg {
+  color: var(--color-hovers-text) !important;
 }
 
 .text-secondary {

@@ -19,7 +19,7 @@ const AdBanner: React.FC<AdBannerProps> = ({ onUpgrade }) => {
         <div className="ml-3 flex flex-col items-end">
           <button 
             onClick={onUpgrade}
-            className="text-xs font-medium text-white primary hover:bg-opacity-90 px-2 py-1 rounded transition-colors duration-200"
+            className="text-xs font-medium text-white primary hover:bg-opacity-90 px-2 py-1 rounded transition-colors duration-200 cursor-pointer"
           >
             Remove Ads
           </button>
