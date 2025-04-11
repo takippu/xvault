@@ -54,7 +54,7 @@ export const importData = async (
   password?: string
 ): Promise<AppData> => {
   try {
-    let jsonData: string;
+    let jsonData: string = '';
     let isEncrypted = false;
     
     // First, check if the data appears to be encrypted (not valid JSON)
@@ -96,6 +96,7 @@ export const importData = async (
       
       // Try to decrypt the data
       try {
+        
         jsonData = await decryptData(importString, password);
       } catch (e) {
         throw new Error('Invalid password or corrupted data');

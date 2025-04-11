@@ -31,19 +31,22 @@ const generateDeviceId = (): string => {
 };
 
 // Create a hash of the password info to detect tampering
-const createIntegrityHash = (passwordInfo: StoredPasswordInfo): string => {
+// Create a hash of the password info to detect tampering
+const createIntegrityHash = async (passwordInfo: StoredPasswordInfo): Promise<string> => {
   const data = JSON.stringify(passwordInfo);
   const encoder = new TextEncoder();
   const dataBuffer = encoder.encode(data);
   
   // Create a SHA-256 hash of the password info
-  return crypto.subtle.digest('SHA-256', dataBuffer)
-    .then(hash => bufferToHex(hash))
-    .catch(err => {
-      console.error('Failed to create integrity hash:', err);
-      return '';
-    });
+  try {
+    const hash = await crypto.subtle.digest('SHA-256', dataBuffer);
+    return bufferToHex(hash); // Return the resolved value from the promise
+  } catch (err) {
+    console.error('Failed to create integrity hash:', err);
+    return ''; // Return empty string on error
+  }
 };
+
 
 // Store integrity verification data
 export const storeIntegrityData = async (passwordInfo: StoredPasswordInfo): Promise<void> => {

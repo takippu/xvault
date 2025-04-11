@@ -99,24 +99,37 @@ const AppContent = () => {
   const [showAbout, setShowAbout] = useState(false); // State to toggle About page visibility
   const [openFolders, setOpenFolders] = useState<Set<string>>(new Set()); // Track which folders are open
 
-  // --- Lock Extension Handler ---
+  // --- Lock Extension Handler with Enhanced Security ---
   const handleLockExtension = useCallback(() => {
     if (!passwordInfo) {
       // If no password is set, the button should be disabled, but double-check here.
       console.log("No password set, cannot lock.");
       return;
     }
-    console.log("Locking extension: Clearing session authentication and closing popup.");
+    console.log("Locking extension with enhanced security: Clearing session authentication and closing popup.");
     
-    // Clear all session authentication data
-    Promise.all([
-      storage.removeItem('session:authenticated'),
-      storage.removeItem('session:challenge')
-    ]).then(() => {
-      setIsAuthenticated(false); // Trigger re-authentication
-      window.close(); // Close the popup window
+    // Import and use lockApplication from enhanced security
+    import('./utils/enhancedSecurity').then(({ lockApplication }) => {
+      // Lock the application with enhanced security
+      lockApplication().then(() => {
+        setIsAuthenticated(false); // Trigger re-authentication
+        window.close(); // Close the popup window
+      }).catch(error => {
+        console.error("Error locking extension with enhanced security:", error);
+      });
     }).catch(error => {
-      console.error("Error locking extension:", error);
+      console.error("Error importing enhanced security utilities:", error);
+      
+      // Fallback to basic locking if enhanced security fails
+      Promise.all([
+        storage.removeItem('session:authenticated'),
+        storage.removeItem('session:challenge')
+      ]).then(() => {
+        setIsAuthenticated(false);
+        window.close();
+      }).catch(lockError => {
+        console.error("Error in fallback lock mechanism:", lockError);
+      });
     });
   }, [passwordInfo, storage]); // Add storage to dependencies
 
@@ -138,15 +151,28 @@ const AppContent = () => {
     });
   }, [selectedFolder, searchQuery]);
 
-  // Load data from storage
+  // Load data from storage with enhanced security
   const loadData = useCallback(async () => {
     setIsLoading(true);
     setAuthError(null);
     try {
+      // Import enhanced security utilities
+      const { 
+        performSecurityBootCheck, 
+        verifyEnhancedIntegrity, 
+        verifyAuthenticationState 
+      } = await import('./utils/enhancedSecurity');
+      
+      // Perform security boot check to verify system integrity
+      const isSecuritySystemIntact = await performSecurityBootCheck();
+      if (!isSecuritySystemIntact) {
+        console.warn("Security system integrity check failed during boot, proceeding with caution");
+      }
+      
       // Use storage.getItem with prefixed keys and specify types
       const storedPasswordInfo = await storage.getItem<StoredPasswordInfo>('local:passwordInfo');
       const storedFolders = await storage.getItem<Folder[]>('local:folders');
-      console.log("Loaded data:", { passwordInfo: storedPasswordInfo, folders: storedFolders });
+      console.log("Loaded data:", { passwordInfo: !!storedPasswordInfo, folders: !!storedFolders });
 
       // Check if we have a session-based authentication
       const sessionAuth = await storage.getItem<boolean>('session:authenticated');
@@ -156,27 +182,17 @@ const AppContent = () => {
       if (storedPasswordInfo?.hash && storedPasswordInfo?.salt) {
         setPasswordInfo(storedPasswordInfo);
         
-        // If we have valid session authentication, verify it with challenge-response
+        // If we have valid session authentication, verify it with enhanced security
         if (sessionAuth === true) {
           try {
-            // Import security utilities
-            const { verifyAuthChallenge, verifyIntegrity } = await import('./utils/securityUtils');
+            // Verify authentication state with multiple security layers
+            const isAuthenticated = await verifyAuthenticationState(storedPasswordInfo);
             
-            // Verify integrity of password info to detect tampering
-            const isIntegrityValid = await verifyIntegrity(storedPasswordInfo);
-            if (!isIntegrityValid) {
-              console.error("Security alert: Password info integrity check failed during session authentication");
-              setIsAuthenticated(false);
-              return;
-            }
-            
-            // Verify the authentication challenge
-            const isValidChallenge = await verifyAuthChallenge(storedPasswordInfo);
-            if (isValidChallenge) {
-              console.log("Session authentication challenge verified successfully");
+            if (isAuthenticated) {
+              console.log("Session authentication verified successfully with enhanced security");
               setIsAuthenticated(true);
             } else {
-              console.log("Session authentication challenge failed, requiring password");
+              console.log("Session authentication failed with enhanced security, requiring password");
               setIsAuthenticated(false);
               // Clear invalid session data
               await storage.removeItem('session:authenticated');
@@ -215,20 +231,25 @@ const AppContent = () => {
     }
     setAuthError(null);
     try {
-        // Import security utilities
-        const { verifyIntegrity, trackFailedLogin, resetFailedLoginAttempts, createAuthChallenge } = await import('./utils/securityUtils');
+        // Import enhanced security utilities
+        const { 
+          verifyEnhancedIntegrity, 
+          trackEnhancedFailedLogin, 
+          resetEnhancedFailedLoginAttempts, 
+          createEnhancedAuthChallenge 
+        } = await import('./utils/enhancedSecurity');
         
-        // Check for rate limiting on failed attempts
-        const { isLocked, waitTime } = await trackFailedLogin();
+        // Check for rate limiting on failed attempts with enhanced security
+        const { isLocked, waitTime } = await trackEnhancedFailedLogin();
         if (isLocked) {
           setAuthError(`Too many failed attempts. Please try again in ${waitTime} seconds.`);
           return;
         }
         
-        // Verify integrity of password info to detect tampering
-        const isIntegrityValid = await verifyIntegrity(passwordInfo);
+        // Verify integrity of password info with enhanced security
+        const isIntegrityValid = await verifyEnhancedIntegrity(passwordInfo);
         if (!isIntegrityValid) {
-          console.error("Security alert: Password info integrity check failed");
+          console.error("Security alert: Password info integrity check failed with enhanced security");
           setAuthError("Security error: Authentication data may have been tampered with.");
           return;
         }
@@ -237,17 +258,17 @@ const AppContent = () => {
         const isValid = await verifyPassword(passwordAttempt, passwordInfo.hash, saltBuffer);
         
         if (isValid) {
-          // Reset failed login attempts counter
-          await resetFailedLoginAttempts();
+          // Reset failed login attempts counter with enhanced security
+          await resetEnhancedFailedLoginAttempts();
           
           // Always clear previous session authentication first
           await storage.removeItem('session:authenticated');
           await storage.removeItem('session:challenge');
           
-          // Create a cryptographic challenge for session verification
+          // Create an enhanced cryptographic challenge for session verification
           if (rememberMe) {
-            await createAuthChallenge(passwordInfo);
-            console.log("Setting session authentication with challenge-response");
+            await createEnhancedAuthChallenge(passwordInfo);
+            console.log("Setting session authentication with enhanced challenge-response");
             await storage.setItem('session:authenticated', true);
           } else {
             console.log("Remember me not checked, no session persistence");
@@ -285,13 +306,13 @@ const AppContent = () => {
         // Use storage.setItem with prefixed key
         await storage.setItem('local:passwordInfo', newPasswordInfo);
         
-        // Import and use storeIntegrityData to create integrity verification
-        const { storeIntegrityData } = await import('./utils/securityUtils');
-        await storeIntegrityData(newPasswordInfo);
+        // Import and use enhanced security to create integrity verification
+        const { storeEnhancedIntegrityData } = await import('./utils/enhancedSecurity');
+        await storeEnhancedIntegrityData(newPasswordInfo);
         
         setPasswordInfo(newPasswordInfo);
         setIsAuthenticated(true); // Assume authenticated after setting
-        console.log("Password info saved with integrity verification");
+        console.log("Password info saved with enhanced integrity verification");
         setToast({
           visible: true,
           message: 'Password set successfully!',
@@ -451,7 +472,7 @@ const AppContent = () => {
     });
   }, [folders, selectedFolderId, storage]); // Add storage to dependencies
 
-  // Handle changing password (verify current + set new)
+  // Handle changing password (verify current + set new) with enhanced security
   const handleChangePassword = useCallback(async (currentPassword: string, newPassword: string) => {
     if (!passwordInfo) {
       setAuthError("No password is currently set.");
@@ -466,11 +487,11 @@ const AppContent = () => {
     
     setAuthError(null);
     try {
-      // Import security utilities
-      const { verifyIntegrity, storeIntegrityData } = await import('./utils/securityUtils');
+      // Import enhanced security utilities
+      const { verifyEnhancedIntegrity, storeEnhancedIntegrityData, lockApplication } = await import('./utils/enhancedSecurity');
       
-      // Verify integrity of password info to detect tampering
-      const isIntegrityValid = await verifyIntegrity(passwordInfo);
+      // Verify integrity of password info with enhanced security
+      const isIntegrityValid = await verifyEnhancedIntegrity(passwordInfo);
       if (!isIntegrityValid) {
         console.error("Security alert: Password info integrity check failed during password change");
         setAuthError("Security error: Authentication data may have been tampered with.");
@@ -494,12 +515,11 @@ const AppContent = () => {
       // Save to storage
       await storage.setItem('local:passwordInfo', newPasswordInfo);
       
-      // Update integrity verification data
-      await storeIntegrityData(newPasswordInfo);
+      // Update enhanced integrity verification data
+      await storeEnhancedIntegrityData(newPasswordInfo);
       
-      // Clear any existing session authentication
-      await storage.removeItem('session:authenticated');
-      await storage.removeItem('session:challenge');
+      // Lock the application with enhanced security
+      await lockApplication();
       
       setPasswordInfo(newPasswordInfo);
       
@@ -515,7 +535,7 @@ const AppContent = () => {
     }
   }, [passwordInfo, storage]); // Add storage to dependencies
   
-  // Handle removing password protection
+  // Handle removing password protection with enhanced security
   const handleRemovePassword = useCallback(async (currentPassword: string) => {
     if (!passwordInfo) {
       setAuthError("No password is currently set.");
@@ -524,11 +544,11 @@ const AppContent = () => {
     
     setAuthError(null);
     try {
-      // Import security utilities
-      const { verifyIntegrity } = await import('./utils/securityUtils');
+      // Import enhanced security utilities
+      const { verifyEnhancedIntegrity } = await import('./utils/enhancedSecurity');
       
-      // Verify integrity of password info to detect tampering
-      const isIntegrityValid = await verifyIntegrity(passwordInfo);
+      // Verify integrity of password info with enhanced security
+      const isIntegrityValid = await verifyEnhancedIntegrity(passwordInfo);
       if (!isIntegrityValid) {
         console.error("Security alert: Password info integrity check failed during password removal");
         setAuthError("Security error: Authentication data may have been tampered with.");
@@ -544,17 +564,28 @@ const AppContent = () => {
         return;
       }
       
-      // Remove all security-related data from storage
+      // Remove all security-related data from storage with enhanced security
+      // Primary locations
       await storage.removeItem('local:passwordInfo');
       await storage.removeItem('local:integrity');
       await storage.removeItem('local:failedAttempts');
       await storage.removeItem('session:authenticated');
       await storage.removeItem('session:challenge');
       
+      // Backup locations
+      await storage.removeItem('local:security_verification');
+      await storage.removeItem('local:security_metadata');
+      await storage.removeItem('local:security_rate_limiting');
+      await storage.removeItem('local:boot_verification');
+      
+      // Also clear localStorage backups
+      localStorage.removeItem('security_metadata_backup');
+      localStorage.removeItem('security_lockout');
+      
       setPasswordInfo(null);
       setIsAuthenticated(true); // No password means authenticated
       
-      console.log("Cleared all security data on password removal");
+      console.log("Cleared all security data on password removal with enhanced security");
       
       // Show success message
       setToast({
@@ -568,7 +599,7 @@ const AppContent = () => {
     }
   }, [passwordInfo, storage]); // Add storage to dependencies
 
-  // Handle importing data
+  // Handle importing data with enhanced security
   const handleImportData = useCallback(async (data: { folders: Folder[], passwordInfo?: StoredPasswordInfo }) => {
     try {
       // Update folders
@@ -577,24 +608,22 @@ const AppContent = () => {
       
       // Update password info if provided
       if (data.passwordInfo) {
-        // Import security utilities
-        const { storeIntegrityData } = await import('./utils/securityUtils');
+        // Import enhanced security utilities
+        const { storeEnhancedIntegrityData, lockApplication } = await import('./utils/enhancedSecurity');
         
         setPasswordInfo(data.passwordInfo);
         await storage.setItem('local:passwordInfo', data.passwordInfo);
         
-        // Create new integrity verification data for the imported password info
-        await storeIntegrityData(data.passwordInfo);
+        // Create new enhanced integrity verification data for the imported password info
+        await storeEnhancedIntegrityData(data.passwordInfo);
         
-        // Clear any existing session authentication
-        await storage.removeItem('session:authenticated');
-        await storage.removeItem('session:challenge');
-        await storage.removeItem('local:failedAttempts');
+        // Lock the application with enhanced security
+        await lockApplication();
       }
       
       return Promise.resolve();
     } catch (error) {
-      console.error("Error importing data:", error);
+      console.error("Error importing data with enhanced security:", error);
       return Promise.reject(error);
     }
   }, [storage]); // Add storage to dependencies

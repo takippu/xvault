@@ -22,7 +22,7 @@
   --color-primary-btn: #ff6380;
   --color-secondary-btn: #ffafcc;
   --color-primary-text: #000000;
-  --color-secondary-text: #f8f7f6;
+  --color-secondary-text: #ff8b17;
   --color-hovers-text: #f40480;
   --color-border: #94969b39;
   --color-hover: #f40480;
@@ -30,6 +30,7 @@
   --color-neon-glow: #fbfbfb;
   --color-folders: #ff679e;
   --color-folders-hover: #ffafcc;
+  --color-switch: #f40480;
 
   --oiia-gif-mode: multiply;
 }
@@ -53,13 +54,16 @@
   --color-primary-text: #e2e8f0;
   --color-secondary-text: #aa9bff;
   --color-hovers-text: #8e6ff3;
-  --color-border: #94969b39;
+  --color-border: #6a6a6a39;
   --color-hover: #0564e1;
   --color-neon-text: #d6d6d6;
   --color-neon-glow: #cd17ff;
   --color-folders: #305e93;
   --color-folders-hover: #404d64;
+  --color-switch: #0564e1;
   --oiia-gif-mode: exclusion;
+
+  
 }
 
 /* Maintain popup dimensions */
@@ -257,4 +261,8 @@ button.secondary:hover {
   100% {
     transform: translateX(-35em);
   }
+}
+
+.peer-checked + .toggle-switch {
+  background-color: var(--color-switch);
 }

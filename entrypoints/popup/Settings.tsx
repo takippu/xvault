@@ -1,8 +1,9 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { FiArrowLeft, FiUnlock, FiDownload, FiUpload } from 'react-icons/fi';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { FiArrowLeft, FiUnlock, FiDownload, FiUpload, FiLock } from 'react-icons/fi';
 import { StoredPasswordInfo, Folder } from './App';
 import { exportData, importData } from './utils/importExport';
 import Toast from './Toast';
+import { useStorage } from './contexts/StorageContext';
 
 interface SettingsProps {
   passwordInfo: StoredPasswordInfo | null;
@@ -45,6 +46,11 @@ const Settings: React.FC<SettingsProps> = ({
   const [toast, setToast] = useState<{ visible: boolean; message: string; type: 'success' | 'error' }>(
     { visible: false, message: '', type: 'success' }
   );
+  
+  // Encryption settings
+  const [isEncryptionEnabled, setIsEncryptionEnabled] = useState(false);
+  const [isEncryptionLoading, setIsEncryptionLoading] = useState(false);
+  const storage = useStorage();
 
   // Determine if we're setting a new password or changing existing one
   const isSettingNewPassword = !passwordInfo;
@@ -57,17 +63,38 @@ const Settings: React.FC<SettingsProps> = ({
 
     // Validate passwords
     if (!isSettingNewPassword && !currentPassword) {
-      setError('Current password is required');
+      setToast({
+        visible: true,
+        message: 'Current password is required',
+        type: 'error'
+      });
       return;
     }
 
     if (!newPassword) {
-      setError('New password is required');
+      setToast({
+        visible: true,
+        message: 'New password is required',
+        type: 'error'
+      });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setToast({
+        visible: true,
+        message: 'Password must be at least 8 characters long',
+        type: 'error'
+      });
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('New password and confirmation do not match');
+      setToast({
+        visible: true,
+        message: 'New password and confirmation do not match',
+        type: 'error'
+      });
       return;
     }
 
@@ -75,11 +102,15 @@ const Settings: React.FC<SettingsProps> = ({
       if (isSettingNewPassword) {
         // Set new password
         await onSetPassword(newPassword);
-        setSuccess('Password set successfully!');
+        // Use toast for success notification
+        setToast({
+          visible: true,
+          message: 'Password set successfully!',
+          type: 'success'
+        });
       } else {
         // Change existing password
         await onChangePassword(currentPassword, newPassword);
-        setSuccess('Password changed successfully!');
       }
 
       // Clear form fields after successful operation
@@ -88,7 +119,14 @@ const Settings: React.FC<SettingsProps> = ({
       setConfirmPassword('');
     } catch (error) {
       console.error('Error in password operation:', error);
-      // Error will be handled by the parent component via authError prop
+      // Display error using toast instead of relying on authError prop
+      if (authError) {
+        setToast({
+          visible: true,
+          message: authError,
+          type: 'error'
+        });
+      }
     }
   }, [currentPassword, newPassword, confirmPassword, isSettingNewPassword, onSetPassword, onChangePassword]);
 
@@ -100,20 +138,106 @@ const Settings: React.FC<SettingsProps> = ({
     setSuccess(null);
     
     if (!currentPassword) {
-      setError('Current password is required to remove password protection');
+      setToast({
+        visible: true,
+        message: 'Current password is required to remove password protection',
+        type: 'error'
+      });
       return;
     }
     
     try {
       await onRemovePassword(currentPassword);
-      setSuccess('Password protection removed successfully!');
+      // Use toast for success notification
+      setToast({
+        visible: true,
+        message: 'Password protection removed successfully!',
+        type: 'success'
+      });
       setCurrentPassword('');
       setShowRemoveConfirm(false);
     } catch (error) {
       console.error('Error removing password:', error);
-      // Error will be handled by the parent component via authError prop
+      // Display error using toast instead of relying on authError prop
+      if (authError) {
+        setToast({
+          visible: true,
+          message: authError,
+          type: 'error'
+        });
+      }
     }
   }, [currentPassword, onRemovePassword]);
+  
+  // Load encryption status on component mount
+  useEffect(() => {
+    const loadEncryptionStatus = async () => {
+      try {
+        const enabled = await storage.isEncryptionEnabled();
+        setIsEncryptionEnabled(enabled);
+      } catch (error) {
+        console.error('Error loading encryption status:', error);
+      }
+    };
+    
+    loadEncryptionStatus();
+  }, [storage]);
+  
+  // Handle toggling encryption
+  const handleToggleEncryption = useCallback(async () => {
+    try {
+      setIsEncryptionLoading(true);
+      
+      if (isEncryptionEnabled) {
+        // Disable encryption
+        await storage.enableEncryption(false);
+        setToast({
+          visible: true,
+          message: 'Folder encryption disabled',
+          type: 'success'
+        });
+      } else {
+        // Enable encryption
+        if (!passwordInfo) {
+          setToast({
+            visible: true,
+            message: 'You must set a password before enabling encryption',
+            type: 'error'
+          });
+          return;
+        }
+        
+        // Migrate to encrypted storage
+        const success = await storage.migrateToEncryptedStorage();
+        if (success) {
+          setToast({
+            visible: true,
+            message: 'Folder encryption enabled',
+            type: 'success'
+          });
+        } else {
+          setToast({
+            visible: true,
+            message: 'Failed to enable encryption',
+            type: 'error'
+          });
+          return;
+        }
+      }
+      
+      // Update state
+      setIsEncryptionEnabled(!isEncryptionEnabled);
+    } catch (error) {
+      console.error('Error toggling encryption:', error);
+      setToast({
+        visible: true,
+        message: 'Error toggling encryption',
+        type: 'error'
+      });
+    } finally {
+      setIsEncryptionLoading(false);
+    }
+  }, [isEncryptionEnabled, passwordInfo, storage]);
 
   return (
     <div className="flex flex-col h-full w-full bg-base text-primary text-sm">
@@ -245,15 +369,13 @@ const Settings: React.FC<SettingsProps> = ({
             </div>
           )}
 
-          {/* Error messages */}
-          {(error || authError) && (
-            <p className="text-red-500 text-sm mt-3">{error || authError}</p>
-          )}
-
-          {/* Success message */}
-          {success && (
-            <p className="text-green-500 text-sm mt-3">{success}</p>
-          )}
+          {/* Toast component for notifications */}
+          <Toast 
+            message={toast.message}
+            isVisible={toast.visible}
+            onClose={() => setToast({ ...toast, visible: false })}
+            type={toast.type}
+          />
           
           {/* Import/Export Section */}
           <div className="mt-8 border-t pt-6 border-color">
@@ -314,10 +436,11 @@ const Settings: React.FC<SettingsProps> = ({
                         };
                         
                         const result = await exportData(dataToExport, exportEncrypt, exportPassword);
+                        await navigator.clipboard.writeText(result);
                         setExportResult(result);
                         setToast({
                           visible: true,
-                          message: 'Data exported successfully!',
+                          message: 'Data copied to clipboard successfully!',
                           type: 'success'
                         });
                       } catch (err) {
@@ -530,6 +653,55 @@ const Settings: React.FC<SettingsProps> = ({
                   onClose={() => setToast(prev => ({ ...prev, visible: false }))}
                 />
               </div>
+            </div>
+          </div>
+          
+          {/* Encryption Settings Section */}
+          <div className="mt-8 border-t pt-6 border-color">
+            <h3 className="text-md font-medium mb-4 flex items-center text-primary">
+              <FiLock className="mr-2" />
+              Folder Encryption
+            </h3>
+            
+            <div className="mb-4">
+              <p className="text-sm text-primary mb-2">
+                When enabled, your folders and snippets will be encrypted in the database.
+                This provides additional protection if someone gains access to your browser's storage.
+              </p>
+              
+              {!passwordInfo && (
+                <p className="text-sm text-warning mb-2">
+                  You must set a password before enabling encryption.
+                </p>
+              )}
+              
+              <div className="flex items-center justify-between mt-4">
+                <span className="text-primary">Enable folder encryption</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={isEncryptionEnabled}
+                    onChange={handleToggleEncryption}
+                    disabled={isEncryptionLoading || !passwordInfo}
+                  />
+                  <div
+                    className="w-11 h-6 bg-primary-base peer-focus:outline-none rounded-full peer 
+                      peer-checked:bg-[var(--color-switch)] after:content-[''] after:absolute 
+                      after:top-[2px] after:left-[2px] after:toggle-switch after:border-gray-300 
+                      after:border after:rounded-full after:h-5 after:w-5 after:transition-all 
+                      peer-checked:after:translate-x-full peer-checked:after:border-base"
+                  >
+                  </div>
+
+                </label>
+              </div>
+              
+              {isEncryptionLoading && (
+                <p className="text-sm text-secondary mt-2">
+                  Processing... This may take a moment.
+                </p>
+              )}
             </div>
           </div>
         </div>
