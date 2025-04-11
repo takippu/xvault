@@ -17,11 +17,16 @@ export const useTheme = () => {
   return context;
 };
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface ThemeProviderProps {
+  children: React.ReactNode;
+  initialTheme?: Theme;
+}
+
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, initialTheme }) => {
   const [theme, setTheme] = useState<Theme>(() => {
     // Try to get saved theme from storage
     const savedTheme = localStorage.getItem('theme') as Theme;
-    return savedTheme || 'light';
+    return savedTheme || initialTheme || 'light';
   });
 
   useEffect(() => {

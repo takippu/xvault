@@ -25,7 +25,7 @@ export const exportData = async (
 ): Promise<string> => {
   try {
     // Convert data to JSON string
-    const jsonData = JSON.stringify(data);
+    const jsonData = JSON.stringify({ folders: data.folders });
     
     // If encryption is requested, encrypt the data
     if (encrypt) {

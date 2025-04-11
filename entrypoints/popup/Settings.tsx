@@ -38,7 +38,7 @@ const Settings: React.FC<SettingsProps> = ({
   const [exportEncrypt, setExportEncrypt] = useState(false);
   const [exportPassword, setExportPassword] = useState('');
   const [importPassword, setImportPassword] = useState('');
-  const [importData, setImportData] = useState('');
+  const [importText, setImportText] = useState(''); // Renamed state variable
   const [exportResult, setExportResult] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -533,21 +533,21 @@ const Settings: React.FC<SettingsProps> = ({
             <div>
               <h3 className="text-md font-medium mb-3 flex items-center text-primary">
                 <FiUpload className="mr-2" />
-                Import Data
-              </h3>
-              
-              <div className="space-y-3">
-                <div>
-                  <label htmlFor="importData" className="block text-sm font-medium text-primary mb-1">
-                    Paste exported data
-                  </label>
-                  <textarea
-                    id="importData"
-                    value={importData}
-                    onChange={(e) => setImportData(e.target.value)}
-                    className="w-full p-2 border border-color rounded bg-secondary-base text-primary focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-btn)] focus:border-[var(--color-primary-btn)] h-32 font-mono text-xs"
-                    placeholder="Paste exported data here"
-                  />
+                    Import Data
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label htmlFor="importData" className="block text-sm font-medium text-primary mb-1">
+                        Paste exported data
+                      </label>
+                      <textarea
+                        id="importData"
+                        value={importText} // Updated state variable reference
+                        onChange={(e) => setImportText(e.target.value)} // Updated state setter
+                        className="w-full p-2 border border-color rounded bg-secondary-base text-primary focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-btn)] focus:border-[var(--color-primary-btn)] h-32 font-mono text-xs"
+                        placeholder="Paste exported data here"
+                      />
                 </div>
                 
                 <div>
@@ -565,12 +565,13 @@ const Settings: React.FC<SettingsProps> = ({
                 </div>
                 
                 <div className="flex flex-col space-y-2">
+                  <label className='text-secondary text-xs font-bold'>warning : importing will replace current folders and snippets</label>
                   <button
                     onClick={async () => {
                       try {
                         setError(null);
-                        
-                        if (!importData.trim()) {
+
+                        if (!importText.trim()) { // Updated state variable reference
                           setToast({
                             visible: true,
                             message: 'No data to import',
@@ -578,19 +579,18 @@ const Settings: React.FC<SettingsProps> = ({
                           });
                           return;
                         }
-                        
+
                         if (onImportData) {
-                          const parsedData = await import('./utils/importExport').then(module => 
-                            module.importData(importData, importPassword || undefined)
-                          );
-                          
+                          // Use the imported function directly (it's no longer shadowed)
+                          const parsedData = await importData(importText, importPassword || undefined); // Use imported function and updated state variable
+
                           await onImportData(parsedData);
                           setToast({
                             visible: true,
                             message: 'Data imported successfully!',
                             type: 'success'
                           });
-                          setImportData('');
+                          setImportText(''); // Updated state setter
                           setImportPassword('');
                         }
                       } catch (err) {
@@ -622,7 +622,7 @@ const Settings: React.FC<SettingsProps> = ({
                         const reader = new FileReader();
                         reader.onload = async (event) => {
                           const content = event.target?.result as string;
-                          setImportData(content);
+                          setImportText(content); // Updated state setter
                         };
                         reader.readAsText(file);
                       } catch (err) {

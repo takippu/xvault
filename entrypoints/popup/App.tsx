@@ -5,12 +5,12 @@ import FolderList from './FolderList';
 import SnippetList from './SnippetList';
 import Toast from './Toast';
 import Settings from './Settings';
-import { FiPlus, FiSearch, FiSettings, FiCopy, FiEdit, FiTrash2, FiInfo, FiLock } from 'react-icons/fi'; // Added FiLock
+import { FiPlus, FiSearch, FiSettings, FiCopy, FiEdit, FiTrash2, FiInfo, FiLock } from 'react-icons/fi';
 import AdBanner from './components/AdBanner';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ThemeToggle from './components/ThemeToggle';
 import About from './components/About';
-import oiaGif from '../../assets/oia-uia.gif';
+import Modal from '../../src/components/Modal';
 
 // --- Crypto Utilities ---
 
@@ -96,31 +96,91 @@ const AppContent = () => {
   const [searchQuery, setSearchQuery] = useState(''); // State for search functionality
   const [showSidebar, setShowSidebar] = useState(true); // State to toggle sidebar visibility
   const [showSettings, setShowSettings] = useState(false); // State to toggle Settings page visibility
-  const [showAbout, setShowAbout] = useState(false); // State to toggle About page visibility
-  const [openFolders, setOpenFolders] = useState<Set<string>>(new Set()); // Track which folders are open
+  const [showAbout, setShowAbout] = useState(false);
+  const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
+
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [folderIdToEdit, setFolderIdToEdit] = useState<string | null>(null);
+  const [folderIdToDelete, setFolderIdToDelete] = useState<string | null>(null);
+  const [editFolderName, setEditFolderName] = useState('');
+
+  const handleEditFolder = useCallback((folderId: string) => {
+    setFolderIdToEdit(folderId);
+    setEditModalOpen(true);
+    const folder = folders.find(f => f.id === folderId);
+    setEditFolderName(folder?.name || '');
+  }, [folders]);
+
+  const handleDeleteFolder = useCallback((folderId: string) => {
+    setFolderIdToDelete(folderId);
+    setDeleteModalOpen(true);
+  }, []);
+
+  const confirmEditFolder = useCallback(() => {
+    if (folderIdToEdit && editFolderName.trim()) {
+      const updatedFolders = folders.map(folder => {
+        if (folder.id === folderIdToEdit) {
+          return { ...folder, name: editFolderName.trim() };
+        }
+        return folder;
+      });
+      setFolders(updatedFolders);
+      storage.setItem('local:folders', updatedFolders).catch((err: unknown) => {
+        console.error("Failed to save folders after editing folder:", err);
+        alert(`Failed to save folders: ${err instanceof Error ? err.message : String(err)}`);
+      });
+    }
+    setEditModalOpen(false);
+    setFolderIdToEdit(null);
+    setEditFolderName('');
+  }, [folderIdToEdit, editFolderName, folders, storage]);
+
+  const confirmDeleteFolder = useCallback(() => {
+    if (folderIdToDelete) {
+      const updatedFolders = folders.filter(folder => folder.id !== folderIdToDelete);
+      setFolders(updatedFolders);
+      storage.setItem('local:folders', updatedFolders).catch((err: unknown) => {
+        console.error("Failed to save folders after deleting folder:", err);
+        alert(`Failed to save folders: ${err instanceof Error ? err.message : String(err)}`);
+      });
+      if (selectedFolderId === folderIdToDelete) {
+        setSelectedFolderId(null);
+      }
+    }
+    setDeleteModalOpen(false);
+    setFolderIdToDelete(null);
+  }, [folderIdToDelete, folders, selectedFolderId, storage]);
+
+  const cancelEditFolder = useCallback(() => {
+    setEditModalOpen(false);
+    setFolderIdToEdit(null);
+    setEditFolderName('');
+  }, []);
+
+  const cancelDeleteFolder = useCallback(() => {
+    setDeleteModalOpen(false);
+    setFolderIdToDelete(null);
+  }, []);
 
   // --- Lock Extension Handler with Enhanced Security ---
   const handleLockExtension = useCallback(() => {
     if (!passwordInfo) {
-      // If no password is set, the button should be disabled, but double-check here.
       console.log("No password set, cannot lock.");
       return;
     }
     console.log("Locking extension with enhanced security: Clearing session authentication and closing popup.");
     
-    // Import and use lockApplication from enhanced security
     import('./utils/enhancedSecurity').then(({ lockApplication }) => {
-      // Lock the application with enhanced security
       lockApplication().then(() => {
-        setIsAuthenticated(false); // Trigger re-authentication
-        window.close(); // Close the popup window
+        setIsAuthenticated(false);
+        window.close();
       }).catch(error => {
         console.error("Error locking extension with enhanced security:", error);
       });
     }).catch(error => {
       console.error("Error importing enhanced security utilities:", error);
       
-      // Fallback to basic locking if enhanced security fails
       Promise.all([
         storage.removeItem('session:authenticated'),
         storage.removeItem('session:challenge')
@@ -131,7 +191,7 @@ const AppContent = () => {
         console.error("Error in fallback lock mechanism:", lockError);
       });
     });
-  }, [passwordInfo, storage]); // Add storage to dependencies
+  }, [passwordInfo, storage]);
 
   const selectedFolder = useMemo(() => {
     return folders.find(folder => folder.id === selectedFolderId) || null;
@@ -773,9 +833,11 @@ const AppContent = () => {
                     return newSet;
                   });
                 }}
+                snippetMode={snippetMode}
+                onEditFolder={handleEditFolder}
+                onDeleteFolder={handleDeleteFolder}
             />
             
-            {/* Add Folder Toggle Button - Only shown when sidebar is visible */}
             {showSidebar && (
               <div className="mt-auto pt-3 border-t border-color"> {/* Pushes form to bottom */}
                   <button
@@ -915,26 +977,55 @@ const AppContent = () => {
       </div>
 
       {/* Ad Banner Section */}
-      <AdBanner 
+      <AdBanner
         onUpgrade={() => {
-          // This would typically open a purchase page or show upgrade information
           setToast({
             visible: true,
             message: 'Upgrade feature coming soon!',
             type: 'success'
           });
-        }} 
+        }}
       />
 
-      {/* Removed Settings Area - Now in separate Settings component */}
+      <Modal
+        isOpen={editModalOpen}
+        onClose={cancelEditFolder}
+        title="Edit Folder Name"
+        onConfirm={confirmEditFolder}
+        confirmText="Save"
+      >
+        <input
+          type="text"
+          className="w-full p-1.5 border border-color rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-base text-primary"
+          value={editFolderName}
+          onChange={(e) => setEditFolderName(e.target.value)}
+          placeholder="New folder name"
+        />
+      </Modal>
+
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={cancelDeleteFolder}
+        title="Delete Folder"
+        onConfirm={confirmDeleteFolder}
+        confirmText="Delete"
+      >
+        <p className='text-primary'>Are you sure you want to delete this folder and all its snippets?</p>
+      </Modal>
     </div>
   );
-}
+};
 
 function App() {
+  // Function to detect the device's preferred color scheme
+  const getInitialTheme = () => {
+    const isDarkThemePreferred = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return isDarkThemePreferred ? 'dark' : 'light';
+  };
+
   return (
-    <ThemeProvider>
-      <AppContent />
+    <ThemeProvider initialTheme={getInitialTheme()}>
+      <AppContent/>
     </ThemeProvider>
   );
 }
