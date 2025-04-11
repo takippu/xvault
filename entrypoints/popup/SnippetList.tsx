@@ -77,9 +77,9 @@ const SnippetList: React.FC<SnippetListProps> = ({
                         {/* Apply hover background, make it block, hide overflow, and add ellipsis */}
                         <span className="hidden group-hover:block text-hovers font-black p-1 rounded overflow-hidden text-ellipsis whitespace-nowrap">{snippet.text}</span>
                         {/* Hide label on hover */}
-                        <span className="absolute top-0 right-0 text-[10px] text-primary bg-secondary-base px-1 rounded-bl group-hover:hidden">
+                        {/* <span className="absolute top-0 right-0 text-[10px] text-primary bg-secondary-base px-1 rounded-bl group-hover:hidden">
                           Hover me 👈
-                        </span>
+                        </span> */}
                       </>
                     )}
                   </pre>

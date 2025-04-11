@@ -12,9 +12,9 @@ const About: React.FC = () => {
   return (
     <div className="flex flex-col min-h-0 h-full p-4 overflow-y-auto bg-base text-primary">
       {/* Header Section */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">PetiRahsia</h1>
-        <p className="text-sm">
+      <div className="mb-6 flex flex-col items-center">
+        <h1 className="titleTxt mb-2">xVault (v0)</h1>
+        <p className="text-sm text-center">
           Your secure digital vault for storing and organizing code snippets across the web.
           Effortlessly save, categorize, and access your code fragments with just a few clicks.
         </p>

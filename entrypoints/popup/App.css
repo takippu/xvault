@@ -165,6 +165,13 @@ button.secondary:hover {
   color: var(--color-primary-text);
 }
 
+.titleTxt {
+  font-size: 5vmin;
+  font-weight: 900;
+  font-family: "Montserrat", sans-serif;
+  color: var(--color-primary-text);
+}
+
 .ghost {
   width: 8vmin;
   height: 12vmin;

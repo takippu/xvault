@@ -6,6 +6,7 @@ import SnippetList from './SnippetList';
 import Toast from './Toast';
 import Settings from './Settings';
 import { FiPlus, FiSearch, FiSettings, FiCopy, FiEdit, FiTrash2, FiInfo, FiLock } from 'react-icons/fi'; // Added FiLock
+import AdBanner from './components/AdBanner';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ThemeToggle from './components/ThemeToggle';
 import About from './components/About';
@@ -517,7 +518,7 @@ const AppContent = () => {
 
   // Apply Tailwind classes to the main App structure
   return (
-    <div className="flex flex-col h-full w-full bg-base text-primary text-sm">
+    <div className="flex flex-col h-full w-full bg-base text-primary text-sm overflow-hidden">
       {/* Toast notification */}
       <Toast
         message={toast.message}
@@ -531,9 +532,9 @@ const AppContent = () => {
           <div className="title">
             <h1 style={{fontSize: '1rem'}}>xVault</h1>
           </div>
-          <div className="gif-container">
+          {/* <div className="gif-container">
             <img src={oiaGif} alt="oia-oia" className="ghost-gif" />
-          </div>
+          </div> */}
         </div>
         <div className="flex items-center gap-2 z-10">
           <ThemeToggle />
@@ -566,7 +567,7 @@ const AppContent = () => {
       {authError && <p className="text-red-600 text-xs mt-2 text-center">{authError}</p>}
 
       {/* Main layout: Sidebar + Content */}
-      <div className="flex flex-grow overflow-hidden border-b border-color relative">
+      <div className="flex flex-grow overflow-hidden border-b border-color relative" style={{ minHeight: 0 }}>
         {/* Sidebar toggle button when sidebar is hidden */}
         {!showSidebar && (
           <button
@@ -754,6 +755,18 @@ const AppContent = () => {
             )}
         </div>
       </div>
+
+      {/* Ad Banner Section */}
+      <AdBanner 
+        onUpgrade={() => {
+          // This would typically open a purchase page or show upgrade information
+          setToast({
+            visible: true,
+            message: 'Upgrade feature coming soon!',
+            type: 'success'
+          });
+        }} 
+      />
 
       {/* Removed Settings Area - Now in separate Settings component */}
     </div>
