@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { storage } from '@wxt-dev/storage';
+import { useStorage } from './contexts/StorageContext';
 import LoginScreen from './LoginScreen';
 import FolderList from './FolderList';
 import SnippetList from './SnippetList';
@@ -76,6 +76,9 @@ export interface StoredPasswordInfo {
 }
 
 const AppContent = () => {
+  // Use our custom storage hook instead of direct import
+  const storage = useStorage();
+  
   const [passwordInfo, setPasswordInfo] = useState<StoredPasswordInfo | null>(null);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -104,11 +107,18 @@ const AppContent = () => {
       return;
     }
     console.log("Locking extension: Clearing session authentication and closing popup.");
-    storage.removeItem('session:authenticated').then(() => {
+    
+    // Clear all session authentication data
+    Promise.all([
+      storage.removeItem('session:authenticated'),
+      storage.removeItem('session:challenge')
+    ]).then(() => {
       setIsAuthenticated(false); // Trigger re-authentication
       window.close(); // Close the popup window
+    }).catch(error => {
+      console.error("Error locking extension:", error);
     });
-  }, [passwordInfo]); // Dependency on passwordInfo
+  }, [passwordInfo, storage]); // Add storage to dependencies
 
   const selectedFolder = useMemo(() => {
     return folders.find(folder => folder.id === selectedFolderId) || null;
@@ -141,13 +151,41 @@ const AppContent = () => {
       // Check if we have a session-based authentication
       const sessionAuth = await storage.getItem<boolean>('session:authenticated');
       console.log("Session authentication state:", sessionAuth);
+      console.log("Using IndexedDB:", storage.isUsingIndexedDB);
 
       if (storedPasswordInfo?.hash && storedPasswordInfo?.salt) {
         setPasswordInfo(storedPasswordInfo);
-        // If we have valid session authentication, skip password prompt
+        
+        // If we have valid session authentication, verify it with challenge-response
         if (sessionAuth === true) {
-          console.log("Using session authentication");
-          setIsAuthenticated(true);
+          try {
+            // Import security utilities
+            const { verifyAuthChallenge, verifyIntegrity } = await import('./utils/securityUtils');
+            
+            // Verify integrity of password info to detect tampering
+            const isIntegrityValid = await verifyIntegrity(storedPasswordInfo);
+            if (!isIntegrityValid) {
+              console.error("Security alert: Password info integrity check failed during session authentication");
+              setIsAuthenticated(false);
+              return;
+            }
+            
+            // Verify the authentication challenge
+            const isValidChallenge = await verifyAuthChallenge(storedPasswordInfo);
+            if (isValidChallenge) {
+              console.log("Session authentication challenge verified successfully");
+              setIsAuthenticated(true);
+            } else {
+              console.log("Session authentication challenge failed, requiring password");
+              setIsAuthenticated(false);
+              // Clear invalid session data
+              await storage.removeItem('session:authenticated');
+              await storage.removeItem('session:challenge');
+            }
+          } catch (error) {
+            console.error("Error verifying session authentication:", error);
+            setIsAuthenticated(false);
+          }
         } else {
           console.log("No valid session authentication found, requiring password");
           setIsAuthenticated(false);
@@ -163,7 +201,7 @@ const AppContent = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [storage]); // Add storage to dependencies
 
   useEffect(() => {
     loadData();
@@ -177,45 +215,83 @@ const AppContent = () => {
     }
     setAuthError(null);
     try {
+        // Import security utilities
+        const { verifyIntegrity, trackFailedLogin, resetFailedLoginAttempts, createAuthChallenge } = await import('./utils/securityUtils');
+        
+        // Check for rate limiting on failed attempts
+        const { isLocked, waitTime } = await trackFailedLogin();
+        if (isLocked) {
+          setAuthError(`Too many failed attempts. Please try again in ${waitTime} seconds.`);
+          return;
+        }
+        
+        // Verify integrity of password info to detect tampering
+        const isIntegrityValid = await verifyIntegrity(passwordInfo);
+        if (!isIntegrityValid) {
+          console.error("Security alert: Password info integrity check failed");
+          setAuthError("Security error: Authentication data may have been tampered with.");
+          return;
+        }
+        
         const saltBuffer = hexToBuffer(passwordInfo.salt);
         const isValid = await verifyPassword(passwordAttempt, passwordInfo.hash, saltBuffer);
-        setIsAuthenticated(isValid);
         
         if (isValid) {
+          // Reset failed login attempts counter
+          await resetFailedLoginAttempts();
+          
           // Always clear previous session authentication first
           await storage.removeItem('session:authenticated');
+          await storage.removeItem('session:challenge');
           
+          // Create a cryptographic challenge for session verification
           if (rememberMe) {
-            // Store authentication state in browser.storage.session if remember me is checked
-            console.log("Setting session authentication to true");
+            await createAuthChallenge(passwordInfo);
+            console.log("Setting session authentication with challenge-response");
             await storage.setItem('session:authenticated', true);
           } else {
             console.log("Remember me not checked, no session persistence");
           }
+          
+          setIsAuthenticated(true);
+        } else {
+          setAuthError("Incorrect password.");
+          setIsAuthenticated(false);
         }
-        
-        if (!isValid) setAuthError("Incorrect password.");
     } catch (error) {
         console.error("Error verifying password:", error);
         setAuthError("An error occurred during login.");
     }
-  }, [passwordInfo]);
+  }, [passwordInfo, storage]); // Add storage to dependencies
 
   const handleSetPassword = useCallback(async (newPassword: string) => {
     if (!newPassword) {
         setAuthError("Password cannot be empty.");
         return;
     }
+    
+    // Enforce minimum password length for better security
+    if (newPassword.length < 8) {
+        setAuthError("Password must be at least 8 characters long.");
+        return;
+    }
+    
     setAuthError(null);
     try {
         const salt = generateSalt();
         const hash = await hashPassword(newPassword, salt);
         const newPasswordInfo: StoredPasswordInfo = { hash, salt: bufferToHex(salt) };
+        
         // Use storage.setItem with prefixed key
         await storage.setItem('local:passwordInfo', newPasswordInfo);
+        
+        // Import and use storeIntegrityData to create integrity verification
+        const { storeIntegrityData } = await import('./utils/securityUtils');
+        await storeIntegrityData(newPasswordInfo);
+        
         setPasswordInfo(newPasswordInfo);
         setIsAuthenticated(true); // Assume authenticated after setting
-        console.log("Password info saved:", newPasswordInfo);
+        console.log("Password info saved with integrity verification");
         setToast({
           visible: true,
           message: 'Password set successfully!',
@@ -225,7 +301,7 @@ const AppContent = () => {
         console.error("Error setting password:", error);
         setAuthError(`Failed to set password: ${error instanceof Error ? error.message : String(error)}`);
     }
-  }, []);
+  }, [storage]); // Add storage to dependencies
 
   const handleAddFolder = useCallback((folderName: string) => {
     if (!folderName.trim()) {
@@ -242,7 +318,7 @@ const AppContent = () => {
     });
     setSelectedFolderId(newFolder.id);
     setNewFolderName('');
-  }, [folders]);
+  }, [folders, storage]); // Add storage to dependencies
 
   const handleAddSnippet = useCallback((folderId: string | null, snippetText: string, snippetTitle?: string) => {
     if (!folderId) {
@@ -278,7 +354,7 @@ const AppContent = () => {
     } else {
         console.error(`Folder with ID ${folderId} not found.`);
     }
-  }, [folders]);
+  }, [folders, storage]); // Add storage to dependencies
 
   // Copy handler with feedback
   const handleCopySnippetWithFeedback = useCallback((snippet: TextSnippet) => {
@@ -331,7 +407,7 @@ const AppContent = () => {
       console.error("Failed to save folders after deleting snippet:", err);
       alert(`Failed to delete snippet: ${err instanceof Error ? err.message : String(err)}`);
     });
-  }, [folders, selectedFolderId]);
+  }, [folders, selectedFolderId, storage]); // Add storage to dependencies
 
   // Edit snippet handler
   const handleEditSnippet = useCallback((snippetId: string, updatedText: string, updatedTitle?: string) => {
@@ -373,7 +449,7 @@ const AppContent = () => {
       message: 'Snippet updated successfully',
       type: 'success'
     });
-  }, [folders, selectedFolderId]);
+  }, [folders, selectedFolderId, storage]); // Add storage to dependencies
 
   // Handle changing password (verify current + set new)
   const handleChangePassword = useCallback(async (currentPassword: string, newPassword: string) => {
@@ -382,8 +458,25 @@ const AppContent = () => {
       return;
     }
     
+    // Enforce minimum password length for better security
+    if (newPassword.length < 8) {
+      setAuthError("New password must be at least 8 characters long.");
+      return;
+    }
+    
     setAuthError(null);
     try {
+      // Import security utilities
+      const { verifyIntegrity, storeIntegrityData } = await import('./utils/securityUtils');
+      
+      // Verify integrity of password info to detect tampering
+      const isIntegrityValid = await verifyIntegrity(passwordInfo);
+      if (!isIntegrityValid) {
+        console.error("Security alert: Password info integrity check failed during password change");
+        setAuthError("Security error: Authentication data may have been tampered with.");
+        return;
+      }
+      
       // Verify current password
       const saltBuffer = hexToBuffer(passwordInfo.salt);
       const isValid = await verifyPassword(currentPassword, passwordInfo.hash, saltBuffer);
@@ -400,8 +493,17 @@ const AppContent = () => {
       
       // Save to storage
       await storage.setItem('local:passwordInfo', newPasswordInfo);
+      
+      // Update integrity verification data
+      await storeIntegrityData(newPasswordInfo);
+      
+      // Clear any existing session authentication
+      await storage.removeItem('session:authenticated');
+      await storage.removeItem('session:challenge');
+      
       setPasswordInfo(newPasswordInfo);
       
+      // Show success message
       setToast({
         visible: true,
         message: 'Password changed successfully!',
@@ -411,7 +513,7 @@ const AppContent = () => {
       console.error("Error changing password:", error);
       setAuthError(`Failed to change password: ${error instanceof Error ? error.message : String(error)}`);
     }
-  }, [passwordInfo]);
+  }, [passwordInfo, storage]); // Add storage to dependencies
   
   // Handle removing password protection
   const handleRemovePassword = useCallback(async (currentPassword: string) => {
@@ -422,6 +524,17 @@ const AppContent = () => {
     
     setAuthError(null);
     try {
+      // Import security utilities
+      const { verifyIntegrity } = await import('./utils/securityUtils');
+      
+      // Verify integrity of password info to detect tampering
+      const isIntegrityValid = await verifyIntegrity(passwordInfo);
+      if (!isIntegrityValid) {
+        console.error("Security alert: Password info integrity check failed during password removal");
+        setAuthError("Security error: Authentication data may have been tampered with.");
+        return;
+      }
+      
       // Verify current password
       const saltBuffer = hexToBuffer(passwordInfo.salt);
       const isValid = await verifyPassword(currentPassword, passwordInfo.hash, saltBuffer);
@@ -431,15 +544,19 @@ const AppContent = () => {
         return;
       }
       
-      // Remove password info from storage
+      // Remove all security-related data from storage
       await storage.removeItem('local:passwordInfo');
+      await storage.removeItem('local:integrity');
+      await storage.removeItem('local:failedAttempts');
+      await storage.removeItem('session:authenticated');
+      await storage.removeItem('session:challenge');
+      
       setPasswordInfo(null);
       setIsAuthenticated(true); // No password means authenticated
       
-      // Clear session storage authentication
-      console.log("Clearing session authentication on password removal");
-      await storage.removeItem('session:authenticated');
+      console.log("Cleared all security data on password removal");
       
+      // Show success message
       setToast({
         visible: true,
         message: 'Password protection removed successfully!',
@@ -449,7 +566,7 @@ const AppContent = () => {
       console.error("Error removing password:", error);
       setAuthError(`Failed to remove password: ${error instanceof Error ? error.message : String(error)}`);
     }
-  }, [passwordInfo]);
+  }, [passwordInfo, storage]); // Add storage to dependencies
 
   // Handle importing data
   const handleImportData = useCallback(async (data: { folders: Folder[], passwordInfo?: StoredPasswordInfo }) => {
@@ -460,8 +577,19 @@ const AppContent = () => {
       
       // Update password info if provided
       if (data.passwordInfo) {
+        // Import security utilities
+        const { storeIntegrityData } = await import('./utils/securityUtils');
+        
         setPasswordInfo(data.passwordInfo);
         await storage.setItem('local:passwordInfo', data.passwordInfo);
+        
+        // Create new integrity verification data for the imported password info
+        await storeIntegrityData(data.passwordInfo);
+        
+        // Clear any existing session authentication
+        await storage.removeItem('session:authenticated');
+        await storage.removeItem('session:challenge');
+        await storage.removeItem('local:failedAttempts');
       }
       
       return Promise.resolve();
@@ -469,7 +597,7 @@ const AppContent = () => {
       console.error("Error importing data:", error);
       return Promise.reject(error);
     }
-  }, []);
+  }, [storage]); // Add storage to dependencies
 
   // --- Rendering Logic ---
   if (isLoading) {
