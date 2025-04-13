@@ -4,9 +4,10 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   manifest: {
+    version: '0.1.0',
     name: 'xVault',
-    description: 'A secure password-protected storage for your important text snippets and notes. Keep your sensitive information safe and easily accessible.',
-    permissions: ['storage'],
+    description: 'A storage that helps you manage your important text snippets and notes. Keep and copy in 1 click!',
+    permissions: ['storage', 'clipboardWrite', 'clipboardRead'],
     icons: {
       16: 'icon/16x16.png',
       32: 'icon/32x32.png',

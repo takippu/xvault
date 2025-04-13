@@ -70,12 +70,12 @@ const SnippetList: React.FC<SnippetListProps> = ({
                   /* Remove group class from pre tag */
                   <pre className="m-0 font-mono relative p-1 rounded">
                     {/* Show title or text by default */}
-                    <span className="block group-hover:hidden">{snippet.title || snippet.text}</span>
+                    <span className="block group-hover:hidden cursor-pointer">{snippet.title || snippet.text}</span>
                     {/* Only show hidden text and apply hover effect if title exists */}
                     {snippet.title && (
                       <>
                         {/* Apply hover background, make it block, hide overflow, and add ellipsis */}
-                        <span className="hidden group-hover:block text-hovers font-black p-1 rounded overflow-hidden text-ellipsis whitespace-nowrap">{snippet.text}</span>
+                        <span className="hidden cursor-pointer group-hover:block text-hovers font-black p-1 rounded overflow-hidden text-ellipsis whitespace-nowrap">{snippet.text}</span>
                         {/* Hide label on hover */}
                         {/* <span className="absolute top-0 right-0 text-[10px] text-primary bg-secondary-base px-1 rounded-bl group-hover:hidden">
                           Hover me 👈

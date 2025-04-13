@@ -87,6 +87,7 @@ const AppContent = () => {
   const [authError, setAuthError] = useState<string | null>(null);
   const [newFolderName, setNewFolderName] = useState('');
   const [newSnippetText, setNewSnippetText] = useState('');
+  const [clipboardContent, setClipboardContent] = useState<string | null>(null);
   const [newSnippetTitle, setNewSnippetTitle] = useState('');
   const [copiedSnippetId, setCopiedSnippetId] = useState<string | null>(null);
   const [snippetMode, setSnippetMode] = useState<'copy' | 'delete' | 'edit'>('copy');
@@ -950,17 +951,111 @@ const AppContent = () => {
                                     onChange={(e) => setNewSnippetTitle(e.target.value)}
                                     placeholder="Snippet title (optional)"
                                 />
-                                <textarea
-                                    className="w-full p-1.5 border border-color rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[60px] bg-base text-primary" // Apply theme to textarea
-                                    value={newSnippetText}
-                                    onChange={(e) => setNewSnippetText(e.target.value)}
-                                    placeholder="Snippet text (required)"
-                                />
+                                <div className="relative">
+                                    <textarea
+                                        className="w-full p-1.5 border border-color rounded text-xs mb-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[60px] bg-base text-primary" // Apply theme to textarea
+                                        value={newSnippetText}
+                                        onChange={(e) => setNewSnippetText(e.target.value)}
+                                        placeholder={clipboardContent ? "Right click to paste from clipboard" : "Snippet text (required)"}
+                                        onFocus={async () => {
+                                            try {
+                                                // Check if clipboard API is available and try to detect content
+                                                if (navigator.clipboard && navigator.clipboard.readText) {
+                                                    try {
+                                                        const text = await navigator.clipboard.readText();
+                                                        if (text && text.trim()) {
+                                                            console.log("Clipboard content detected on focus");
+                                                            setClipboardContent(text);
+                                                        }
+                                                    } catch (clipErr) {
+                                                        console.log("Clipboard permission denied or empty on focus");
+                                                        // Still show the right-click hint even if we can't read directly
+                                                        setClipboardContent(" "); // Use space to trigger the UI hint
+                                                    }
+                                                }
+                                            } catch (error) {
+                                                console.error("Failed to read clipboard contents:", error);
+                                                // Still show the right-click hint
+                                                setClipboardContent(" "); // Use space to trigger the UI hint
+                                            }
+                                        }}
+                                        onBlur={() => {
+                                            // Keep clipboard content available for a while after blur
+                                            setTimeout(() => {
+                                                if (!newSnippetText.trim()) {
+                                                    setClipboardContent(null);
+                                                }
+                                            }, 300);
+                                        }}
+                                        onContextMenu={(e) => {
+                                            e.preventDefault(); // Always prevent default for right-click
+                                            // Try to get clipboard content directly when right-clicked
+                                            if (navigator.clipboard && navigator.clipboard.readText) {
+                                                navigator.clipboard.readText().then(text => {
+                                                    if (text && text.trim()) {
+                                                        setNewSnippetText(text);
+                                                        setClipboardContent(null);
+                                                        console.log("Text pasted from clipboard");
+                                                    }
+                                                }).catch(err => {
+                                                    console.error("Failed to paste from clipboard:", err);
+                                                    setToast({
+                                                        visible: true,
+                                                        message: 'Please use Ctrl+V to paste (clipboard access denied)',
+                                                        type: 'error'
+                                                    });
+                                                });
+                                            }
+                                        }}
+                                        onClick={() => {
+                                            // Try to detect clipboard on click as well
+                                            if (!clipboardContent && !newSnippetText && navigator.clipboard && navigator.clipboard.readText) {
+                                                navigator.clipboard.readText().then(text => {
+                                                    if (text && text.trim()) {
+                                                        setClipboardContent(text);
+                                                    }
+                                                }).catch(() => {
+                                                    // Silent fail - just trying to detect clipboard
+                                                    setClipboardContent(" "); // Use space to trigger the UI hint
+                                                });
+                                            }
+                                        }}
+                                    />
+                                    {clipboardContent && !newSnippetText && (
+                                        <div className="absolute bottom-2 right-2 text-xs text-gray-500 bg-base px-1 py-0.5 rounded flex items-center gap-1">
+                                            <span>Right click to paste or</span>
+                                            <button 
+                                                className="px-2 py-0.5 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                                                onClick={() => {
+                                                    if (navigator.clipboard && navigator.clipboard.readText) {
+                                                        navigator.clipboard.readText().then(text => {
+                                                            if (text && text.trim()) {
+                                                                setNewSnippetText(text);
+                                                                setClipboardContent(null);
+                                                                console.log("Text pasted from clipboard using button");
+                                                            }
+                                                        }).catch(err => {
+                                                            console.error("Failed to paste from clipboard:", err);
+                                                            setToast({
+                                                                visible: true,
+                                                                message: 'Clipboard access denied. Try using Ctrl+V directly in the text field.',
+                                                                type: 'error'
+                                                            });
+                                                        });
+                                                    }
+                                                }}
+                                            >
+                                                Paste
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                                 <button
                                     className="w-full py-1.5 px-3 border-none rounded bg-green-600 text-white cursor-pointer text-xs transition-colors duration-200 ease-in-out hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed" // Keep specific button colors
                                     onClick={() => {
                                         handleAddSnippet(selectedFolderId, newSnippetText, newSnippetTitle);
                                         setShowAddSnippet(false); // Hide form after adding
+                                        setClipboardContent(null);
                                     }}
                                     disabled={!newSnippetText.trim()}
                                 >
