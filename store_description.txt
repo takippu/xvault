@@ -1,0 +1,26 @@
+🔒 Manage, Copy and Paste Your Snippets in 1 click
+
+xVault is your trusted Chrome extension for securely storing and organizing sensitive information, snippets, and notes right in your browser. 
+
+Key Features:
+✨ Secure Vault Storage: Keep your sensitive information protected with standard encryption
+📁 Smart Organization: Create folders to organize your snippets and notes
+🌓 Light/Dark Theme: Choose the look that suits your style
+🔍 Quick Search: Find your stored information instantly
+🔐 Privacy First: Your data stays encrypted and secure
+
+Premium Features:
+💫 Unlimited Storage: Store as many snippets as you need
+📤 Import/Export: Backup and restore your valuable data
+⚡ Priority Support: Get help when you need it most
+🎯 Early Access: Be the first to try new features
+
+Perfect for:
+• Developers storing code snippets
+• Students keeping study notes
+• Professionals managing sensitive information
+• Anyone who needs quick, secure access to their private notes
+
+Start with our Free plan and upgrade to Premium when you need more power. Your privacy and security are our top priorities.
+
+Install xVault today and experience the peace of mind that comes with having your sensitive information securely organized and instantly accessible.
