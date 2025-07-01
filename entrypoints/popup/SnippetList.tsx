@@ -32,13 +32,13 @@ const SnippetList: React.FC<SnippetListProps> = ({
         <p className="text-xs text-secondary">No snippets in this folder yet.</p> 
       ) : (
         // Remove default list styling, add spacing between items
-        <ul className="space-y-2">
+        <ul className="space-y-2 overflow-hidden">
           {snippets.map((snippet) => (
             // Conditionally add 'group' class only if snippet has a title
             // Add onClick for row copy and conditional cursor
             <li 
               key={snippet.id} 
-              className={`${snippet.title ? 'group' : ''} flex justify-between items-start p-2 border border-color rounded bg-base ${mode === 'copy' ? 'cursor-pointer hover:bg-hover' : ''} transition-colors duration-150 ease-in-out`}
+              className={`${snippet.title ? 'group' : ''} flex justify-between items-start p-2 border border-color rounded bg-base ${mode === 'copy' ? 'cursor-pointer hover:bg-hover' : ''} transition-colors duration-150 ease-in-out overflow-hidden`}
               onClick={() => {
                 if (mode === 'copy' && copiedSnippetId !== snippet.id) { // Prevent re-copying immediately
                   onCopySnippet(snippet);
@@ -47,7 +47,7 @@ const SnippetList: React.FC<SnippetListProps> = ({
             >
               {/* Snippet text area - Apply theme classes, add min-w-0 */}
               <div
-                className="text-xs text-primary whitespace-pre-wrap break-all mr-3 flex-grow bg-secondary-base p-1.5 rounded font-mono relative cursor-default min-w-0" // Added min-w-0
+                className="text-xs text-primary whitespace-pre-wrap break-all mr-3 flex-grow bg-secondary-base p-1.5 rounded font-mono relative cursor-default min-w-0 w-0" // Use w-0 with flex-grow to prevent expansion
               >
                 {editingSnippetId === snippet.id ? (
                   <div className="space-y-1">
@@ -70,12 +70,12 @@ const SnippetList: React.FC<SnippetListProps> = ({
                   /* Remove group class from pre tag */
                   <pre className="m-0 font-mono relative p-1 rounded">
                     {/* Show title or text by default */}
-                    <span className="block group-hover:hidden cursor-pointer">{snippet.title || snippet.text}</span>
+                    <span className="block group-hover:hidden cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap">{snippet.title || snippet.text}</span>
                     {/* Only show hidden text and apply hover effect if title exists */}
                     {snippet.title && (
                       <>
-                        {/* Apply hover background, make it block, hide overflow, and add ellipsis */}
-                        <span className="hidden cursor-pointer group-hover:block text-hovers font-black p-1 rounded overflow-hidden text-ellipsis whitespace-nowrap">{snippet.text}</span>
+                        {/* Apply hover background, make it block, hide overflow, and add ellipsis - use absolute positioning */}
+                        <span className="hidden cursor-pointer group-hover:block text-hovers font-black p-1 rounded overflow-hidden text-ellipsis whitespace-nowrap absolute top-0 left-0 right-0 z-10 bg-secondary-base border border-color">{snippet.text}</span>
                         {/* Hide label on hover */}
                         {/* <span className="absolute top-0 right-0 text-[10px] text-primary bg-secondary-base px-1 rounded-bl group-hover:hidden">
                           Hover me 👈
